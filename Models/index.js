@@ -28,7 +28,15 @@ const db = {}
 
 db.Sequelize = Sequelize
 db.sequelize = sequelize
+db.users = require('./UserModel.js')(sequelize, DataTypes)
 db.rooms = require('./RoomModel.js')(sequelize, DataTypes)
+
+db.users.hasMany(db.rooms, { as: "rooms" ,onDelete:"cascade"});
+
+db.rooms.belongsTo(db.users, {
+  foreignKey: "userId",
+  as: "user",
+});
 
 db.sequelize.sync({force: false}).then(() => {
     console.log("Re-sync done")

@@ -13,7 +13,8 @@ const addRoom = async (req,res) => {
         area: req.body.area,
         floor: req.body.floor,
         heating: req.body.heating,
-        description: req.body.description
+        description: req.body.description,
+        userId: req.body.userId
     }
 
     const room = await Room.create(roomInfo)
