@@ -45,7 +45,8 @@ const updateRoom = async(req,res) => {
             area: req.body.area,
             floor: req.body.floor,
             heating: req.body.heating,
-            description: req.body.description
+            description: req.body.description,
+            userId: req.body.userId
         },
         {where: {id: Id}}
         )
@@ -69,5 +70,3 @@ module.exports = {
     updateRoom,
     deleteRoom
 }
-
-/* Bale pantou res.status(200).json({message: rooms}) */

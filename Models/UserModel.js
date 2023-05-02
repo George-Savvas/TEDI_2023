@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         name: {type: DataTypes.STRING},
         lastname: {type: DataTypes.STRING},
         email: {type: DataTypes.STRING},
-        telephone: {type: DataTypes.INTEGER},
+        telephone: {type: DataTypes.STRING(10)}, //fix this
         role: {type: DataTypes.STRING}
     })
 

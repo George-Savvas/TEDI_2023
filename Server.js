@@ -10,6 +10,9 @@ app.use(express.json())
 const roomRouter = require('./Routes/RoomRoutes.js')
 app.use('/rooms', roomRouter)
 
+const userRouter = require('./Routes/UserRoutes.js')
+app.use('/auth', userRouter)
+
 app.get('/', (req,res) => {
     res.status(200).json({message: "Home Page"})
 })
