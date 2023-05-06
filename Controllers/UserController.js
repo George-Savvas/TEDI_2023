@@ -46,6 +46,56 @@ const login =async(req,res)=>{
     }
 }
 
+const usernameExists =async(req,res)=>{
+    let username= req.body.username;
+    // if not exist : error
+    const user= await User.findOne({ where: { username: username } });
+    if (user == null) {
+        res.status(200).json({Exist:"false"});
+    }
+    else 
+    res.status(200).json({Exist:"true"});
+}
+
+const emailExists =async(req,res)=>{
+    let email= req.body.email;
+    // if not exist : error
+    const user= await User.findOne({ where: { email: email } });
+    if (user == null) {
+        res.status(200).json({Exist:"false"});
+    }
+    else 
+    res.status(200).json({Exist:"true"});
+}
+
+
+const updateUser = async(req,res) => {
+    let Id=req.params.id
+    await User.update(
+        {   
+            username: req.body.username,
+            password: hash_password, // bale confirm password
+            name: req.body.name,
+            lastname: req.body.lastname,
+            email: req.body.email,
+            telephone: req.body.telephone,
+            role: req.body.role
+        },
+        {where: {id: Id}}
+        )
+    res.status(200).json({message: "Information updated succesfully!"})
+}
+
+const deleteUser = async(req,res) => {
+    let Id=req.params.id
+    await User.destroy({
+        where: {
+          id: Id
+        }
+      })
+      res.status(200).json({message: "User deleted succesfully!"})  
+}
+
 module.exports = {
-    addUser,getAllUsers,login
+    addUser,getAllUsers,login, usernameExists ,emailExists,updateUser,deleteUser
 }
