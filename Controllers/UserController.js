@@ -7,7 +7,7 @@ const addUser = async (req,res) => {
     let password = req.body.password
     bcrypt.hash(password,10).then((hash_password)=>{  // bcrypt.hash will encrypt the password
         User.create({
-            id: req.body.id,
+            //id: req.body.id,
             username: req.body.username,
             password: hash_password,
             name: req.body.name,
@@ -74,7 +74,7 @@ const updateUser = async(req,res) => {
     await User.update(
         {   
             username: req.body.username,
-            password: hash_password, // bale confirm password
+            //password: hash_password, // bale allo update me confirm initial password
             name: req.body.name,
             lastname: req.body.lastname,
             email: req.body.email,

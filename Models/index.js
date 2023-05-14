@@ -38,6 +38,7 @@ db.rooms.belongsTo(db.users, {
   as: "user",
 });
 
+
 db.sequelize.sync({force: false}).then(() => {
     console.log("Re-sync done")
 })

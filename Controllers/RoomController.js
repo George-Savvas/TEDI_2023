@@ -5,7 +5,7 @@ const Room = db.rooms
 const addRoom = async (req,res) => {
 
     let roomInfo = {
-        id: req.body.id,
+        //id: req.body.id,
         name: req.body.name,
         price: req.body.price,
         dates_available: req.body.dates_available,
@@ -37,7 +37,7 @@ const updateRoom = async(req,res) => {
     let Id=req.params.id
     await Room.update(
         {   
-            id: req.body.id,
+            //id: req.body.id,
             name: req.body.name,
             price: req.body.price,
             dates_available: req.body.dates_available,
