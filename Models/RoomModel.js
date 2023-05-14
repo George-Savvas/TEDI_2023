@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
 
     const Room = sequelize.define("rooms", {
-        id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
+        //id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
         name: {type: DataTypes.STRING},
         price: {type: DataTypes.INTEGER},
         dates_available: {type: DataTypes.STRING},
