@@ -31,13 +31,13 @@ const login =async(req,res)=>{
     // if not exist : error
     const user= await User.findOne({ where: { username: username } });
     if (user == null) {
-        res.status(200).json({error:"Username doesn't exist"});
-    } 
+        res.status(200).json({message:"Username doesn't exist"});
+    }
 
     else { 
         bcrypt.compare(password,user.password).then((equal)=>{
             if(!equal){
-                res.status(200).json({error:"Wrong username and password combination"})
+                res.status(200).json({message:"Wrong username and password combination"})
                 //res.status(200).json({hashed:hash_password})
             }
             else 
