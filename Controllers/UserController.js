@@ -14,7 +14,9 @@ const addUser = async (req,res) => {
             lastname: req.body.lastname,
             email: req.body.email,
             telephone: req.body.telephone,
-            role: req.body.role
+            isTenant: req.body.isTenant,
+            isLandlord: req.body.isLandlord,
+            isAdmin: req.body.isAdmin
             })
         res.status(200).json("Succesful addition!")
         })
@@ -79,8 +81,9 @@ const updateUser = async(req,res) => {
             lastname: req.body.lastname,
             email: req.body.email,
             telephone: req.body.telephone,
-            role: req.body.role
-        },
+            isTenant: req.body.isTenant,
+            isLandlord: req.body.isLandlord,
+            isAdmin: req.body.isAdmin        },
         {where: {id: Id}}
         )
     res.status(200).json({message: "Information updated succesfully!"})
