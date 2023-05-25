@@ -8,7 +8,9 @@ module.exports = (sequelize, DataTypes) => {
         lastname: {type: DataTypes.STRING},
         email: {type: DataTypes.STRING},
         telephone: {type: DataTypes.STRING(10)}, //fix this
-        role: {type: DataTypes.STRING}
+        isTenant: {type: DataTypes.BOOLEAN},
+        isLandlord:{type: DataTypes.BOOLEAN},
+        isAdmin:{type: DataTypes.BOOLEAN}
     })
 
     return User

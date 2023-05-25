@@ -4,7 +4,6 @@ module.exports = (sequelize, DataTypes) => {
         //id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
         name: {type: DataTypes.STRING},
         price: {type: DataTypes.INTEGER},
-        dates_available: {type: DataTypes.STRING},
         location: {type: DataTypes.STRING},
         area: {type: DataTypes.INTEGER},
         floor: {type: DataTypes.INTEGER},
