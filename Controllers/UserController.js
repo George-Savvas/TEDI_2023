@@ -17,7 +17,7 @@ const addUser = async (req,res) => {
             active: false,
             isTenant: req.body.isTenant,
             isLandlord: req.body.isLandlord,
-            isAdmin: req.body.isAdmin
+            isAdmin: false
             })
         res.status(200).json("Succesful addition!")
         })
