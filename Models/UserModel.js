@@ -7,7 +7,8 @@ module.exports = (sequelize, DataTypes) => {
         name: {type: DataTypes.STRING},
         lastname: {type: DataTypes.STRING},
         email: {type: DataTypes.STRING},
-        telephone: {type: DataTypes.STRING(10)}, //fix this
+        telephone: {type: DataTypes.STRING(10)}, //maybe fix this(for the additional +30 at the start)
+        active:{type: DataTypes.BOOLEAN},
         isTenant: {type: DataTypes.BOOLEAN},
         isLandlord:{type: DataTypes.BOOLEAN},
         isAdmin:{type: DataTypes.BOOLEAN}

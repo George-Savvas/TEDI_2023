@@ -7,13 +7,14 @@ const addUser = async (req,res) => {
     let password = req.body.password
     bcrypt.hash(password,10).then((hash_password)=>{  // bcrypt.hash will encrypt the password
         User.create({
-            //id: req.body.id,
+            //id: req.body.id,     // id is generated automaticaly
             username: req.body.username,
             password: hash_password,
             name: req.body.name,
             lastname: req.body.lastname,
             email: req.body.email,
             telephone: req.body.telephone,
+            active: false,
             isTenant: req.body.isTenant,
             isLandlord: req.body.isLandlord,
             isAdmin: req.body.isAdmin
@@ -48,7 +49,7 @@ const login =async(req,res)=>{
     }
 }
 
-const usernameExists =async(req,res)=>{
+const usernameExists =async(req,res)=>{ 
     let username= req.body.username;
     // if not exist : error
     const user= await User.findOne({ where: { username: username } });
@@ -81,6 +82,9 @@ const updateUser = async(req,res) => {
             lastname: req.body.lastname,
             email: req.body.email,
             telephone: req.body.telephone,
+            active: req.body.active,              
+            // case 1: If it's the admin he can either activate(true) or deactivate(false)
+            // case 2: If it's the user (to ask for update) body will be missing"active" param anyway  
             isTenant: req.body.isTenant,
             isLandlord: req.body.isLandlord,
             isAdmin: req.body.isAdmin        },
