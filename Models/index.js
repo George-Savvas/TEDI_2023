@@ -73,8 +73,13 @@ db.availabilities.belongsTo(db.rooms);
 
 
 /* */
-let Admin_password = "Admin123"
-    bcrypt.hash(Admin_password,10).then((hash_password)=>{
+
+async function createAdmin() {
+    let admins=await db.users.findAll({where:{isAdmin:true}}) 
+    if(admins.length==0){ // cause we had to run Server multiple times 
+
+      let Admin_password = "Admin123"
+      bcrypt.hash(Admin_password,10).then((hash_password)=>{
         db.users.create(
         {
         username: "Admin",
@@ -88,8 +93,11 @@ let Admin_password = "Admin123"
         isLandlord: false, // depends
         isAdmin: true
         })
-    })  
+      })  
+    }
+}
 
+createAdmin()
 
 /*  add it to 
 

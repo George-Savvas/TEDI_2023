@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt")
 
 const User = db.users
 
-const addUser = async (req,res) => {
+const addUser = async (req,res) => { // signup
     let password = req.body.password
     bcrypt.hash(password,10).then((hash_password)=>{  // bcrypt.hash will encrypt the password
         User.create({
@@ -22,11 +22,6 @@ const addUser = async (req,res) => {
         res.status(200).json("Succesful addition!")
         })
     }
-    
-const getAllUsers = async(req,res)=>{
-    let users=await User.findAll()
-    res.status(200).json({users:users})
-}
 
 const login =async(req,res)=>{
     let username= req.body.username
@@ -47,6 +42,25 @@ const login =async(req,res)=>{
                 res.status(200).json({message:"succesful login!"})
         })
     }
+}    
+
+const getAllUsers = async(req,res)=>{
+    let users=await User.findAll()
+    res.status(200).json({users:users})
+}
+/*
+const getUserById = async(req,res)=>{
+    let Id=req.params.id
+    const user=await User.findByPk(Id)
+    res.status(200).json({user: user})
+}
+/* */
+const getUserById = async(req,res)=>{
+    let Id=req.params.id
+    const user=await User.findByPk(Id,{
+            attributes: { exclude: ['password'] }
+            })
+    res.status(200).json({user: user})
 }
 
 const usernameExists =async(req,res)=>{ 
@@ -82,7 +96,7 @@ const updateUser = async(req,res) => {
             lastname: req.body.lastname,
             email: req.body.email,
             telephone: req.body.telephone,
-            active: req.body.active,              
+            //active: req.body.active,              
             // case 1: If it's the admin he can either activate(true) or deactivate(false)
             // case 2: If it's the user (to ask for update) body will be missing"active" param anyway  
             isTenant: req.body.isTenant,
@@ -93,6 +107,7 @@ const updateUser = async(req,res) => {
     res.status(200).json({message: "Information updated succesfully!"})
 }
 
+//////////////      ADMIN REQUESTS
 const deleteUser = async(req,res) => {
     let Id=req.params.id
     await User.destroy({
@@ -103,6 +118,16 @@ const deleteUser = async(req,res) => {
       res.status(200).json({message: "User deleted succesfully!"})  
 }
 
+const activateUser = async(req,res) => {
+    let Id=req.params.id
+    await User.update(
+        {active:req.body.active},   // probably admin should be able to deactivate as well 
+        {where: {id: Id}}
+        )
+
+    res.status(200).json({message: req.body.active})
+}
+
 module.exports = {
-    addUser,getAllUsers,login, usernameExists ,emailExists,updateUser,deleteUser
+    addUser,login,getAllUsers,getUserById, usernameExists ,emailExists,updateUser,deleteUser , activateUser
 }
