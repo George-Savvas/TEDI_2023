@@ -11,11 +11,13 @@ router.get('/getAllRooms', roomController.getAllRooms)
 
 router.get('/viewRoom/:id', roomController.getRoomById)
 
-router.get('/availableRooms', roomController.getAvailableRooms)
+router.get('/getAvailableRooms', roomController.getAvailableRooms)
 
 router.put('/update/:id', roomController.updateRoom)
 
 router.delete('/delete/:id',roomController.deleteRoom)
+
+router.put('/changeAvailability', roomController.changeAvailability)
 
 router.delete('/deleteDates',roomController.deleteDates)
 

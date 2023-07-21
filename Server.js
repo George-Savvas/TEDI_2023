@@ -13,6 +13,12 @@ app.use('/rooms', roomRouter)
 const userRouter = require('./Routes/UserRoutes.js')
 app.use('/auth', userRouter)
 
+const bookingRouter = require('./Routes/BookingRoutes.js')
+app.use('/bookings', bookingRouter)
+
+const fileRouter = require('./Routes/FileRoutes.js')
+app.use('/files', fileRouter)
+
 app.get('/', (req,res) => {
     res.status(200).json({message: "Home Page"})
 })

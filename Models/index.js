@@ -32,7 +32,7 @@ db.sequelize = sequelize
 db.users = require('./UserModel.js')(sequelize, DataTypes)
 db.rooms = require('./RoomModel.js')(sequelize, DataTypes)
 db.availabilities = require('./AvailabilityModel.js')(sequelize, DataTypes)
-
+db.bookings = require('./BookingModel.js')(sequelize, DataTypes)
 
 //Associations
 
@@ -60,19 +60,33 @@ db.availabilities.belongsTo(db.rooms, {
   foreignKey: "roomId",
   targetKey: "id",
 });
-/* 
-  
-db.rooms.hasMany(db.availabilities, {
-    foreignKey: 'id'
-  });
-db.availabilities.belongsTo(db.rooms);
-/* */  
-  
+
+// a user has many Bookings
+db.users.hasMany(db.bookings, {   
+    foreignKey: "userId",
+    sourceKey: "id",
+    onDelete:"cascade"
+});
+
+db.bookings.belongsTo(db.users, {
+  foreignKey: "userId",
+  targetKey: "id",
+});
+
+// a room has many Bookings
+/* */
+db.rooms.hasMany(db.bookings, {   
+    foreignKey: "roomId",
+    sourceKey: "id",
+    onDelete:"cascade"
+});
+
+db.bookings.belongsTo(db.rooms, {
+  foreignKey: "roomId",
+  targetKey: "id",
+});
 
 // Admin Creation
-
-
-/* */
 
 async function createAdmin() {
     let admins=await db.users.findAll({where:{isAdmin:true}}) 
@@ -99,37 +113,22 @@ async function createAdmin() {
 
 createAdmin()
 
-/*  add it to 
+   /* 
+// test how Dates work
+var dates = new Array();
+const currDate=new Date('2023-07-20')   
+const endDate=new Date('2023-07-25')
+while(currDate<endDate){
+    //console.log(currDate)
+    //currDate.setDate(currDate + 1)
+    currDate.setDate(currDate.getDate() + 1)
+    dates.push(currDate.toJSON().slice(0,10))
+}
+console.log(dates)
 
-async function getDates() {
-    let dates_result=await db.dates.findAll()
-    //.then(console.log("dates :",dates_result.length))
-    //console.log("dates :",dates_result.length)
-    if(dates_result.length == 0){
-
-        //create the current next 500 dates //////////////
-        const currDate = new Date()//.setHours(0, 0, 0, 0);
-        
-        for(let i=0;i<365;i++){
-            currDate.setDate(currDate.getDate() + 1)
-        
-            let Datekey = currDate.toJSON().slice(0,10)  // we give it the form of a DATE datatype (by keeping the first 10 characters)
-           
-            Calendar = await db.calendars.create({datekey:Datekey}) // the first 365 dates - creation is a one time thing
-                                            // it takes very small time so there is no problem doing it sychronously
-            // asychronously: (+other changes) const newDate=await db.dates.create({datekey:Datekey})
-        
-            //////  !!!!!!!!!!!!!!!check asychronous method
-        
-        }
-        }
-    }
-
-getDates()
-
-   
-    
 /* */
+
+
 db.sequelize.sync({force: false}).then(() => {
     console.log("Re-sync done")
 })

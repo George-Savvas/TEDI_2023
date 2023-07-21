@@ -60,12 +60,21 @@ const getUserById = async(req,res)=>{
     const user=await User.findByPk(Id,{
             attributes: { exclude: ['password'] }
             })
+
+    res.status(200).json({user: user})
+}
+
+const getUserByUsername = async(req,res)=>{
+    const user=await User.findOne({where: { username:req.params.username} 
+            ,
+            attributes: { exclude: ['password'] }
+        })
     res.status(200).json({user: user})
 }
 
 const usernameExists =async(req,res)=>{ 
     let username= req.body.username;
-    // if not exist : error
+    
     const user= await User.findOne({ where: { username: username } });
     if (user == null) {
         res.status(200).json({Exist:"false"});
@@ -107,7 +116,7 @@ const updateUser = async(req,res) => {
     res.status(200).json({message: "Information updated succesfully!"})
 }
 
-//////////////      ADMIN REQUESTS
+//////////////      ADMIN and User request 
 const deleteUser = async(req,res) => {
     let Id=req.params.id
     await User.destroy({
@@ -118,6 +127,7 @@ const deleteUser = async(req,res) => {
       res.status(200).json({message: "User deleted succesfully!"})  
 }
 
+//////////////     only ADMIN request 
 const activateUser = async(req,res) => {
     let Id=req.params.id
     await User.update(
@@ -129,5 +139,6 @@ const activateUser = async(req,res) => {
 }
 
 module.exports = {
-    addUser,login,getAllUsers,getUserById, usernameExists ,emailExists,updateUser,deleteUser , activateUser
+    addUser,login,getAllUsers,getUserById, usernameExists ,emailExists,updateUser,deleteUser , activateUser,
+    getUserByUsername
 }
