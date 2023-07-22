@@ -1,3 +1,6 @@
+const https = require('https');
+const fs = require('fs');
+
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -27,6 +30,16 @@ app.all('*', (req,res) => {
     res.status(404).json({message: "Page not found"})
 })
 
-app.listen(port, () => {
-    console.log(`Server listening on port ${port}...`)
-})
+const options= {
+    key:fs.readFileSync('ryans-key.pem'),
+    cert:fs.readFileSync('ryans-cert.pem')
+}
+
+https.createServer(options,app,(req,res)=>{
+    res.end(`Server listening on port ${port}...`)
+}).listen(port)
+
+// no tls sll:
+// /*app.listen(port, () => {
+//     console.log(`Server listening on port ${port}...`)
+// }) /* */
