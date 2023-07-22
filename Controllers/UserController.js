@@ -124,7 +124,11 @@ const deleteUser = async(req,res) => {
           id: Id
         }
       })
-      res.status(200).json({message: "User deleted succesfully!"})  
+      if (user == null) {
+        res.status(200).json({message:"User doesn't exist"});
+      }
+      else 
+        res.status(200).json({message: "User deleted succesfully!"})  
 }
 
 //////////////     only ADMIN request 

@@ -26,9 +26,9 @@ sequelize.authenticate().then(() => {
 })
 
 const db = {}
-
 db.Sequelize = Sequelize
 db.sequelize = sequelize
+
 db.users = require('./UserModel.js')(sequelize, DataTypes)
 db.rooms = require('./RoomModel.js')(sequelize, DataTypes)
 db.availabilities = require('./AvailabilityModel.js')(sequelize, DataTypes)
@@ -89,8 +89,8 @@ db.bookings.belongsTo(db.rooms, {
 // Admin Creation
 
 async function createAdmin() {
-    let admins=await db.users.findAll({where:{isAdmin:true}}) 
-    if(admins.length==0){ // cause we had to run Server multiple times 
+    //let admins=await db.users.findAll({where:{isAdmin:true}}) 
+    //if(admins.length==0){ // cause we had to run Server multiple times 
 
       let Admin_password = "Admin123"
       bcrypt.hash(Admin_password,10).then((hash_password)=>{
@@ -108,7 +108,7 @@ async function createAdmin() {
         isAdmin: true
         })
       })  
-    }
+    //}
 }
 
 createAdmin()

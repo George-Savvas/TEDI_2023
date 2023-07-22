@@ -5,8 +5,10 @@ var xml2js = require('xml2js');
 
 
 const downloadJSON = async (req,res) => {   // the json body is set at the front-end
-  let json = JSON.stringify(req.body)
+  let json = JSON.stringify(req.body,null,4)
   //fs.writeFile("adminFiles/JSON_File.js",json,(err) => {
+  console.log(json)
+  console.log("json",req.body)
   fs.writeFile("adminFiles/JSON_File.js",json,(err) => {
     if (err) throw err;
   });
@@ -16,6 +18,7 @@ const downloadJSON = async (req,res) => {   // the json body is set at the front
 
 const downloadXML = async (req,res) => {   // the json body is set at the front-end
   let jsonObj = req.body
+  console.log("json",req.body)
   var builder = new xml2js.Builder();
   var xml = builder.buildObject(jsonObj);  
 
