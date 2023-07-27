@@ -35,11 +35,11 @@ const options= {
     cert:fs.readFileSync('ryans-cert.pem')
 }
 
-https.createServer(options,app,(req,res)=>{
-    res.end(`Server listening on port ${port}...`)
-}).listen(port)
+// https.createServer(options,app,(req,res)=>{
+//     res.end(`Server listening on port ${port}...`)
+// }).listen(port)
 
 // no tls sll:
-// /*app.listen(port, () => {
-//     console.log(`Server listening on port ${port}...`)
-// }) /* */
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}...`)
+}) 

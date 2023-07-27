@@ -124,10 +124,10 @@ const deleteUser = async(req,res) => {
           id: Id
         }
       })
-      if (user == null) {
-        res.status(200).json({message:"User doesn't exist"});
-      }
-      else 
+    //   if (user == null) {
+    //     res.status(200).json({message:"User doesn't exist"});
+    //   }
+    //   else 
         res.status(200).json({message: "User deleted succesfully!"})  
 }
 
