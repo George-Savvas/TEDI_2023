@@ -22,6 +22,8 @@ app.use('/bookings', bookingRouter)
 const fileRouter = require('./Routes/FileRoutes.js')
 app.use('/files', fileRouter)
 
+app.use('/Images',express.static('./Images'))
+
 app.get('/', (req,res) => {
     res.status(200).json({message: "Home Page"})
 })

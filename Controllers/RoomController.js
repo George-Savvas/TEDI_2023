@@ -3,6 +3,46 @@ const {Sequelize, DataTypes} = require('sequelize')
 const Op = Sequelize.Op;
 const Room = db.rooms
 const Availability = db.availabilities
+const multer = require("multer");
+const fs = require('fs');
+
+const storageEngine = multer.diskStorage({
+    destination: "./images",
+    filename: (req, file, cb) => {
+      cb(null, `${Date.now()}--${file.originalname}`);
+    },
+  });
+
+const path = require("path");
+
+const checkFileType = function (file, cb) {
+    //Allowed file extensions
+    const fileTypes = /jpeg|jpg|png|gif|svg/;
+  
+    //check extension names
+    const extName = fileTypes.test(path.extname(file.originalname).toLowerCase());
+  
+    const mimeType = fileTypes.test(file.mimetype);
+  
+    if (mimeType && extName) {
+      return cb(null, true);
+    } else {
+      cb("Error: You can Only Upload Images!!");
+    }
+  };
+
+const upload = multer({
+    storage: storageEngine,
+    limits: { fileSize: 10000000 },
+    fileFilter: (req, file, cb) => {
+      checkFileType(file, cb);
+    },
+  })//.single('thumbnail_img');
+
+
+const upload_thumbnail= upload.single('thumbnail_img');
+
+const upload_images= upload.array('images');
 
 const addRoom = async (req,res) => {
 
@@ -15,12 +55,21 @@ const addRoom = async (req,res) => {
         floor: req.body.floor,
         heating: req.body.heating,
         description: req.body.description,
+        thumbnail_img: req.file.path,
+        //images: req.files.path,
         userId: req.body.userId
     }
+    
+    // var paths = req.files.map(file => file.path)
+    // console.log("paths",paths)
 
-    const room = await Room.create(roomInfo)
-    res.status(200).json({room: room})
-    console.log(room)
+    try {
+      const room = await Room.create(roomInfo)
+      res.status(200).json({room: room})
+      console.log(room)
+    }catch(error) {
+       res.status(400).send(error);
+    }
 }
 
 
@@ -57,6 +106,20 @@ const updateRoom = async(req,res) => {
 
 const deleteRoom = async(req,res) => {
     let Id=req.params.id
+
+    // DELETE img from 'images' to clear space
+    const room=await Room.findByPk(Id,{
+        attributes: ['thumbnail_img']
+        })
+    const img_path=room.thumbnail_img    //const img_path = room.map((room) => room.thumbnail_img);
+    if(img_path ){  // if thumbnail_img != NULL 
+      fs.unlink(img_path, function(err) {
+        if (err) {
+            console.error("Error occurred while trying to remove file");
+        } 
+      });
+    }///////////////////////////////////    
+
     await Room.destroy({
         where: {
           id: Id
@@ -216,5 +279,7 @@ module.exports = {
     set_1_year_Availability,
     addAvailability,
     deleteDates,
-    changeAvailability
+    changeAvailability,
+    upload_thumbnail,
+    upload_images
 }

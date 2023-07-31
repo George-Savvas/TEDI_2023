@@ -1,8 +1,8 @@
-const fs = require('fs');
+//const fs = require('fs');
 var xml = require('xml');
 var xml2js = require('xml2js');
 const db = require('../Models')
-//sconst https = require('https');
+const multer = require("multer");
 
 const Booking = db.bookings
 const Room = db.rooms

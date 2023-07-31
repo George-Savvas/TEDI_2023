@@ -1,7 +1,7 @@
 const roomController = require('../Controllers/RoomController.js')
 const router = require('express').Router()
 
-router.post('/addRoom', roomController.addRoom)
+router.post('/addRoom',roomController.upload_thumbnail,roomController.addRoom )
 
 router.post('/addAvailability', roomController.addAvailability)
 
