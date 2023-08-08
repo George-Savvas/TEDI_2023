@@ -5,10 +5,11 @@ const fs = require('fs');
 const User = db.users
 
 const addUser = async (req,res) => { // signup
+
     let password = req.body.password
     bcrypt.hash(password,10).then((hash_password)=>{  // bcrypt.hash will encrypt the password
-        User.create({
-            //id: req.body.id,     // id is generated automaticaly
+
+        UserInfo={    //id: req.body.id,     // id is generated automaticaly
             username: req.body.username,
             password: hash_password,
             name: req.body.name,
@@ -16,11 +17,20 @@ const addUser = async (req,res) => { // signup
             email: req.body.email,
             telephone: req.body.telephone,
             active: false,
-            profile_img: req.file.path,
             isTenant: req.body.isTenant,
             isLandlord: req.body.isLandlord,
             isAdmin: false
-            })
+            }
+
+        ////   CHECK FOR IMAGE ADDITION //////////////
+        if(req.file) // if profile_img is to be updated
+        {
+            // add new profile path to RoomInfo 
+            UserInfo["profile_img"] = req.file.path
+        }
+        ///////////////////////////////////////
+
+        User.create(UserInfo)
         res.status(200).json("Succesful addition!")
         })
     }
