@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
         heating: {type: DataTypes.BOOLEAN},
         description: {type: DataTypes.TEXT},
         thumbnail_img:{type:DataTypes.STRING},
-        //images:{type:DataTypes.ARRAY(DataTypes.STRING)}
-        images:{type:DataTypes.TEXT}
+        num_of_images: {type: DataTypes.INTEGER} // must be under 10
+        // images:{type:DataTypes.TEXT}
             // ,
             // get() {
             //     if null

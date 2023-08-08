@@ -3,6 +3,14 @@ const router = require('express').Router()
 
 router.post('/addRoom',roomController.upload_thumbnail,roomController.addRoom )
 
+router.post('/addImages/:roomId',roomController.upload_images,roomController.addImages)
+
+router.get('/getImages/:roomId', roomController.getImages)
+
+router.get('/getImageByPath', roomController.getImageByPath)
+
+router.delete('/deleteImage/:id',roomController.deleteImage)
+
 router.post('/addAvailability', roomController.addAvailability)
 
 router.post('/set_1_year_Availability',roomController.set_1_year_Availability)
@@ -13,7 +21,7 @@ router.get('/viewRoom/:id', roomController.getRoomById)
 
 router.get('/getAvailableRooms', roomController.getAvailableRooms)
 
-router.put('/update/:id', roomController.updateRoom)
+router.put('/update/:id', roomController.upload_thumbnail,roomController.updateRoom)
 
 router.delete('/delete/:id',roomController.deleteRoom)
 

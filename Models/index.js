@@ -31,6 +31,7 @@ db.sequelize = sequelize
 
 db.users = require('./UserModel.js')(sequelize, DataTypes)
 db.rooms = require('./RoomModel.js')(sequelize, DataTypes)
+db.images = require('./ImageModel.js')(sequelize, DataTypes)
 db.availabilities = require('./AvailabilityModel.js')(sequelize, DataTypes)
 db.bookings = require('./BookingModel.js')(sequelize, DataTypes)
 
@@ -46,6 +47,19 @@ db.users.hasMany(db.rooms, {
 db.rooms.belongsTo(db.users, {
   foreignKey: "userId",
   targetKey: "id",
+});
+
+// a room has many images (excluding the thumbnail )
+/* */
+db.rooms.hasMany(db.images, {   
+  foreignKey: "roomId",
+  sourceKey: "id",
+  onDelete:"cascade"
+});
+
+db.images.belongsTo(db.rooms, {
+foreignKey: "roomId",
+targetKey: "id",
 });
 
 // a room has many "availabilities"(dates either available or taken)
@@ -89,8 +103,8 @@ db.bookings.belongsTo(db.rooms, {
 // Admin Creation
 
 async function createAdmin() {
-    //let admins=await db.users.findAll({where:{isAdmin:true}}) 
-    //if(admins.length==0){ // cause we had to run Server multiple times 
+    let admins=await db.users.findAll({where:{isAdmin:true}}) 
+    if(admins.length==0){ // cause we had to run Server multiple times 
 
       let Admin_password = "Admin123"
       bcrypt.hash(Admin_password,10).then((hash_password)=>{
@@ -108,7 +122,7 @@ async function createAdmin() {
         isAdmin: true
         })
       })  
-    //}
+    }
 }
 
 createAdmin()

@@ -1,5 +1,6 @@
 const db = require('../Models')
 const bcrypt = require("bcrypt")
+const fs = require('fs');
 
 const User = db.users
 
@@ -15,6 +16,7 @@ const addUser = async (req,res) => { // signup
             email: req.body.email,
             telephone: req.body.telephone,
             active: false,
+            profile_img: req.file.path,
             isTenant: req.body.isTenant,
             isLandlord: req.body.isLandlord,
             isAdmin: false
@@ -26,6 +28,7 @@ const addUser = async (req,res) => { // signup
 const login =async(req,res)=>{
     let username= req.body.username
     let password= req.body.password
+
     // if not exist : error
     const user= await User.findOne({ where: { username: username } });
     if (user == null) {
@@ -97,20 +100,37 @@ const emailExists =async(req,res)=>{
 
 const updateUser = async(req,res) => {
     let Id=req.params.id
+
+    UserInfo={   
+        username: req.body.username,
+        //password: hash_password, // bale allo update me confirm initial password
+        name: req.body.name,
+        lastname: req.body.lastname,
+        email: req.body.email,
+        telephone: req.body.telephone,
+        //active: req.body.active, // maybe this should be false              
+        isTenant: req.body.isTenant,
+        isLandlord: req.body.isLandlord,
+        isAdmin: req.body.isAdmin
+    }
+
+    if(req.file) // if profile_img is to be updated
+    {
+        // add new profile path to RoomInfo 
+        UserInfo["profile_img"] = req.file.path
+        
+        // remove old profile from storage 
+
+        const user =await User.findByPk(Id,{attributes:["profile_img"]}) 
+        img_path = user.profile_img
+        fs.unlink(img_path, function(err) { 
+            if (err) {
+            console.error("Error occurred while trying to remove image");
+            } 
+        });
+    }
     await User.update(
-        {   
-            username: req.body.username,
-            //password: hash_password, // bale allo update me confirm initial password
-            name: req.body.name,
-            lastname: req.body.lastname,
-            email: req.body.email,
-            telephone: req.body.telephone,
-            //active: req.body.active,              
-            // case 1: If it's the admin he can either activate(true) or deactivate(false)
-            // case 2: If it's the user (to ask for update) body will be missing"active" param anyway  
-            isTenant: req.body.isTenant,
-            isLandlord: req.body.isLandlord,
-            isAdmin: req.body.isAdmin        },
+        UserInfo,
         {where: {id: Id}}
         )
     res.status(200).json({message: "Information updated succesfully!"})
@@ -119,6 +139,20 @@ const updateUser = async(req,res) => {
 //////////////      ADMIN and User request 
 const deleteUser = async(req,res) => {
     let Id=req.params.id
+    // DELETE IMAGES FROM './images' CLEAR SPACE 
+    //1) DELETE thumbnail_img
+    const user=await User.findByPk(Id,{
+        attributes: ['profile_img']
+        })
+    const img_path=user.profile_img    //const img_path = room.map((room) => room.thumbnail_img);
+    if(img_path ){  // if thumbnail_img != NULL 
+      fs.unlink(img_path, function(err) {
+        if (err) {
+            console.error("Error occurred while trying to remove image");
+        } 
+      });
+    }
+    
     await User.destroy({
         where: {
           id: Id

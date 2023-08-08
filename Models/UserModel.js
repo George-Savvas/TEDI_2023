@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
         active:{type: DataTypes.BOOLEAN},
         isTenant: {type: DataTypes.BOOLEAN},
         isLandlord:{type: DataTypes.BOOLEAN},
-        isAdmin:{type: DataTypes.BOOLEAN}
+        isAdmin:{type: DataTypes.BOOLEAN},
+        profile_img:{type:DataTypes.STRING},
     })
 
     return User

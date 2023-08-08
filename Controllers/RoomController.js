@@ -3,6 +3,8 @@ const {Sequelize, DataTypes} = require('sequelize')
 const Op = Sequelize.Op;
 const Room = db.rooms
 const Availability = db.availabilities
+const Image = db.images
+
 const multer = require("multer");
 const fs = require('fs');
 
@@ -39,14 +41,15 @@ const upload = multer({
     },
   })//.single('thumbnail_img');
 
-
 const upload_thumbnail= upload.single('thumbnail_img');
+
+const upload_profile= upload.single('profile_img');
 
 const upload_images= upload.array('images');
 
 const addRoom = async (req,res) => {
 
-    let roomInfo = {
+    let RoomInfo = {
         //id: req.body.id,
         name: req.body.name,
         price: req.body.price,
@@ -55,16 +58,19 @@ const addRoom = async (req,res) => {
         floor: req.body.floor,
         heating: req.body.heating,
         description: req.body.description,
-        thumbnail_img: req.file.path,
-        //images: req.files.path,
         userId: req.body.userId
     }
-    
-    // var paths = req.files.map(file => file.path)
-    // console.log("paths",paths)
+
+    if(req.file) // if thumbnail is to be updated
+    {
+        // add new thumbnail path to RoomInfo 
+        RoomInfo["thumbnail_img"] = req.file.path
+    }
+    else 
+        console.log("no file")
 
     try {
-      const room = await Room.create(roomInfo)
+      const room = await Room.create(RoomInfo)
       res.status(200).json({room: room})
       console.log(room)
     }catch(error) {
@@ -72,7 +78,70 @@ const addRoom = async (req,res) => {
     }
 }
 
+// images (except for thumbnail)
 
+const addImages = async (req,res) => {
+    let RoomId= req.params.roomId
+    let paths = req.files.map(file => file.path)
+    console.log("all paths:",paths)
+    let index = 0
+
+    while(index < paths.length ){
+        await Image.create(
+            {roomId:RoomId,
+            path:paths[index],
+            position:index+1
+            })
+
+        index++
+    }
+
+    res.status(200).json({message: `Added ${index} Images`})
+}
+
+const getImages = async (req,res) => {
+    let RoomId= req.params.roomId
+    
+    const images =await Image.findAll({
+        //attributes: ['path','position'], //del
+        where: {roomId:RoomId}
+        })
+
+    console.log(images)//del
+    res.status(200).json({images:images})
+}
+
+const getImageByPath = async (req,res) => {
+    
+    const image =await Image.findOne({
+        where: {path:req.body.path}
+        })
+
+    res.status(200).json({image:image})
+}
+
+const deleteImage = async (req,res) => {
+    let Id= req.params.id
+
+    // unlink image form ./images
+    const image =await Image.findByPk(Id) 
+    img_path =image.path
+    fs.unlink(img_path, function(err) {
+        if (err) {
+            console.error("Error occurred while trying to remove image");
+        } 
+      });
+
+    // destroy image record
+    await Image.destroy({
+        where: {id:Id}
+        })
+
+    res.status(200).json({message:"Image deleted succesfully"})
+}
+
+
+///////////////////////////
 
 const getAllRooms = async (req,res) => {
     let rooms = await Room.findAll()
@@ -87,27 +156,47 @@ const getRoomById = async(req,res) => {
 
 const updateRoom = async(req,res) => {
     let Id=req.params.id
+    
+    let RoomInfo={   
+        //id: req.body.id,
+        name: req.body.name,
+        price: req.body.price,
+        location: req.body.location,
+        area: req.body.area,
+        floor: req.body.floor,
+        heating: req.body.heating,
+        description: req.body.description,        
+        userId: req.body.userId
+    }
+
+    if(req.file) // if thumbnail is to be updated
+    {
+        // add new thumbnail path to RoomInfo 
+        RoomInfo["thumbnail_img"] = req.file.path
+        
+        // remove old thumbnail from storage 
+        const room =await Room.findByPk(Id,{attributes:["thumbnail_img"]}) 
+        img_path = room.thumbnail_img
+        fs.unlink(img_path, function(err) {
+            if (err) {
+            console.error("Error occurred while trying to remove image");
+            } 
+        });
+    }
+
     await Room.update(
-        {   
-            //id: req.body.id,
-            name: req.body.name,
-            price: req.body.price,
-            location: req.body.location,
-            area: req.body.area,
-            floor: req.body.floor,
-            heating: req.body.heating,
-            description: req.body.description,
-            userId: req.body.userId
-        },
+        RoomInfo,
         {where: {id: Id}}
         )
     res.status(200).json({message: "Information updated succesfully!"})
 }
 
+
 const deleteRoom = async(req,res) => {
     let Id=req.params.id
 
-    // DELETE img from 'images' to clear space
+    // DELETE IMAGES FROM './images' CLEAR SPACE 
+    //1) DELETE thumbnail_img
     const room=await Room.findByPk(Id,{
         attributes: ['thumbnail_img']
         })
@@ -115,11 +204,26 @@ const deleteRoom = async(req,res) => {
     if(img_path ){  // if thumbnail_img != NULL 
       fs.unlink(img_path, function(err) {
         if (err) {
-            console.error("Error occurred while trying to remove file");
+            console.error("Error occurred while trying to remove image");
         } 
       });
-    }///////////////////////////////////    
-
+    }
+    //2) DELETE IMAGES 
+    const images = await Image.findAll({attributes: ['path'],where:{roomId:Id}})
+    if(images ){ // if room has any images
+        const paths = images.map((image) => image.path)
+        console.log("paths",paths)
+        for(let i=0;i<paths.length;i++){
+            console.log("path:",path[i])
+            fs.unlink(paths[i], function(err) {
+                if (err) {
+                    console.error("Error occurred while trying to remove image");
+                } 
+              });
+        }
+    }
+//////////////////////////////////    
+/////   DELETE ROOM
     await Room.destroy({
         where: {
           id: Id
@@ -281,5 +385,10 @@ module.exports = {
     deleteDates,
     changeAvailability,
     upload_thumbnail,
-    upload_images
+    upload_images,
+    addImages,
+    getImages,
+    getImageByPath,
+    deleteImage , 
+    upload_profile
 }
