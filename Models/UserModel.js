@@ -14,6 +14,6 @@ module.exports = (sequelize, DataTypes) => {
         isAdmin:{type: DataTypes.BOOLEAN},
         profile_img:{type:DataTypes.STRING},
     })
-
+ 
     return User
 }

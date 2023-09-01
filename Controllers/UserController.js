@@ -22,13 +22,13 @@ const addUser = async (req,res) => { // signup
             isAdmin: false
             }
 
-        ////   CHECK FOR IMAGE ADDITION //////////////
-        if(req.file) // if profile_img is to be updated
-        {
-            // add new profile path to RoomInfo 
-            UserInfo["profile_img"] = req.file.path
-        }
-        ///////////////////////////////////////
+        // ////   CHECK FOR IMAGE ADDITION //////////////
+        // if(req.file) // if profile_img is to be updated
+        // {
+        //     // add new profile path to RoomInfo 
+        //     UserInfo["profile_img"] = req.file.path
+        // }
+        // ///////////////////////////////////////
 
         User.create(UserInfo)
         res.status(200).json("Succesful addition!")
@@ -108,72 +108,83 @@ const emailExists =async(req,res)=>{
 }
 
 
-const updateUser = async(req,res) => {
-    let Id=req.params.id
+const updateImage = async (req,res) => {
 
-    UserInfo={   
-        username: req.body.username,
-        //password: hash_password, // bale allo update me confirm initial password
-        name: req.body.name,
-        lastname: req.body.lastname,
-        email: req.body.email,
-        telephone: req.body.telephone,
-        //active: req.body.active, // maybe this should be false              
-        isTenant: req.body.isTenant,
-        isLandlord: req.body.isLandlord,
-        isAdmin: req.body.isAdmin
-    }
+    // we retrieve the given url parameter for the user id
+    let Id = req.params.id
 
-    if(req.file) // if profile_img is to be updated
-    {
-        // add new profile path to RoomInfo 
-        UserInfo["profile_img"] = req.file.path
-        
-        // remove old profile from storage 
+    // remove old profile from storage
+    const user = await User.findByPk(Id,{attributes:["profile_img"]})
+    img_path = user.profile_img
+    if(img_path){
+    fs.unlink(img_path, function(err) {
+        if(err) {
+            console.error("Error occurred while trying to remove image")
+        }
+    })
+}
 
-        const user =await User.findByPk(Id,{attributes:["profile_img"]}) 
-        img_path = user.profile_img
-        fs.unlink(img_path, function(err) { 
-            if (err) {
-            console.error("Error occurred while trying to remove image");
-            } 
-        });
-    }
     await User.update(
-        UserInfo,
+        {profile_img: req.file.path},
         {where: {id: Id}}
-        )
+    )
+
+    res.status(200).json({message: "User image updated succesfully!"})
+}
+
+const updateUser = async (req,res) => {
+    let Id=req.params.id
+    bcrypt.hash(req.body.password,10).then(async (hash_password)=>{
+        await User.update({
+            username: req.body.username,
+            password: hash_password,
+            name: req.body.name,
+            lastname: req.body.lastname,
+            telephone: req.body.telephone,
+            },{
+            where: {id: Id}
+        })
+    })
     res.status(200).json({message: "Information updated succesfully!"})
 }
 
 //////////////      ADMIN and User request 
 const deleteUser = async(req,res) => {
     let Id=req.params.id
-    // DELETE IMAGES FROM './images' CLEAR SPACE 
-    //1) DELETE thumbnail_img
-    const user=await User.findByPk(Id,{
+
+    let user = await User.findByPk(Id,{
         attributes: ['profile_img']
         })
-    const img_path=user.profile_img    //const img_path = room.map((room) => room.thumbnail_img);
-    if(img_path ){  // if thumbnail_img != NULL 
-      fs.unlink(img_path, function(err) {
-        if (err) {
-            console.error("Error occurred while trying to remove image");
-        } 
-      });
-    }
-    
-    await User.destroy({
-        where: {
-          id: Id
+             
+    if (user == null) {  // 1) CHECK IF ID IS INVALID
+        res.status(200).json({message:"User doesn't exist"});
         }
-      })
-    //   if (user == null) {
-    //     res.status(200).json({message:"User doesn't exist"});
-    //   }
-    //   else 
-        res.status(200).json({message: "User deleted succesfully!"})  
+          
+    else {            
+        const img_path=user.profile_img         
+        if(img_path ){  // 2) CHECK IF profile_img != NULL             
+            fs.unlink(img_path, function(err) {  // DELETE image FROM './images' ,CLEAR SPACE
+                if (err) 
+                    console.error("Error occurred while trying to remove image");
+            });
+        }
+
+        //3 DELETE USER 
+        await User.destroy({
+            where: {id: Id }
+        })
+        
+        res.status(200).json({message: "User deleted succesfully!"})
+    } 
 }
+// await User.destroy({
+//     where: {
+//       id: Id
+//     }
+//   })
+// res.status(200).json({message: "User deleted succesfully!"})
+ 
+
 
 //////////////     only ADMIN request 
 const activateUser = async(req,res) => {
@@ -188,5 +199,5 @@ const activateUser = async(req,res) => {
 
 module.exports = {
     addUser,login,getAllUsers,getUserById, usernameExists ,emailExists,updateUser,deleteUser , activateUser,
-    getUserByUsername
+    getUserByUsername,updateImage
 }

@@ -11,10 +11,10 @@ const sequelize = new Sequelize(
         dialect: databaseConfig.dialect,
         operatorsAliases: 0,
         pool: {
-            max: databaseConfig.max,
-            min: databaseConfig.min,
-            acquire: databaseConfig.acquire,
-            idle: databaseConfig.idle
+            max: databaseConfig.pool.max,
+            min: databaseConfig.pool.min,
+            acquire: databaseConfig.pool.acquire,
+            idle: databaseConfig.pool.idle
         }
     }
 )
@@ -34,6 +34,7 @@ db.rooms = require('./RoomModel.js')(sequelize, DataTypes)
 db.images = require('./ImageModel.js')(sequelize, DataTypes)
 db.availabilities = require('./AvailabilityModel.js')(sequelize, DataTypes)
 db.bookings = require('./BookingModel.js')(sequelize, DataTypes)
+db.reviews = require('./ReviewModel.js')(sequelize, DataTypes)
 
 //Associations
 
@@ -47,6 +48,30 @@ db.users.hasMany(db.rooms, {
 db.rooms.belongsTo(db.users, {
   foreignKey: "userId",
   targetKey: "id",
+});
+
+// a user has many Bookings
+db.users.hasMany(db.bookings, {   
+  foreignKey: "userId",
+  sourceKey: "id",
+  onDelete:"cascade"
+});
+
+db.bookings.belongsTo(db.users, {
+foreignKey: "userId",
+targetKey: "id",
+});
+
+// a user has many Reviews
+db.users.hasMany(db.reviews, {   
+  foreignKey: "userId",
+  sourceKey: "id",
+  onDelete:"cascade"
+});
+
+db.reviews.belongsTo(db.users, {
+foreignKey: "userId",
+targetKey: "id",
 });
 
 // a room has many images (excluding the thumbnail )
@@ -75,18 +100,6 @@ db.availabilities.belongsTo(db.rooms, {
   targetKey: "id",
 });
 
-// a user has many Bookings
-db.users.hasMany(db.bookings, {   
-    foreignKey: "userId",
-    sourceKey: "id",
-    onDelete:"cascade"
-});
-
-db.bookings.belongsTo(db.users, {
-  foreignKey: "userId",
-  targetKey: "id",
-});
-
 // a room has many Bookings
 /* */
 db.rooms.hasMany(db.bookings, {   
@@ -100,33 +113,46 @@ db.bookings.belongsTo(db.rooms, {
   targetKey: "id",
 });
 
-// Admin Creation
+// a room has many Reviews
+/* */
+db.rooms.hasMany(db.reviews, {   
+  foreignKey: "roomId",
+  sourceKey: "id",
+  onDelete:"cascade",
+});
 
-async function createAdmin() {
-    let admins=await db.users.findAll({where:{isAdmin:true}}) 
-    if(admins.length==0){ // cause we had to run Server multiple times 
+db.reviews.belongsTo(db.rooms, {
+foreignKey: "roomId",
+targetKey: "id",
+});
 
-      let Admin_password = "Admin123"
-      bcrypt.hash(Admin_password,10).then((hash_password)=>{
-        db.users.create(
-        {
-        username: "Admin",
-        password: hash_password, // all passwords are hashed for safety
-        name: "John",
-        lastname: "Wick",
-        email: "housing_Admin@gmail.com",
-        telephone: 6256699675, //maybe fix this(for the additional +30 at the start)
-        active: true,
-        isTenant: false,  // depends
-        isLandlord: false, // depends
-        isAdmin: true
-        })
-      })  
-    }
-}
 
-createAdmin()
+// async function createAdmin() {
+//   let admins=await db.users.findAll({where:{isAdmin:true}})
+ 
+//     if(admins.length==0){ // cause we had to run Server multiple times 
 
+//       let Admin_password = "Admin123"
+//       bcrypt.hash(Admin_password,10).then((hash_password)=>{
+//         db.users.create(
+//         {
+//         username: "Admin",
+//         password: hash_password, // all passwords are hashed for safety
+//         name: "John",
+//         lastname: "Wick",
+//         email: "housing_Admin@gmail.com",
+//         telephone: 6256699675, //maybe fix this(for the additional +30 at the start)
+//         active: true,
+//         isTenant: false,  // depends
+//         isLandlord: false, // depends
+//         isAdmin: true
+//         })
+//       })  
+//     }  
+  
+// }
+
+//createAdmin()
    /* 
 // test how Dates work
 var dates = new Array();
@@ -142,9 +168,49 @@ console.log(dates)
 
 /* */
 
+//Admin Creation
+async function createAdmin() {
 
+      let Admin_password = "Admin123"
+      bcrypt.hash(Admin_password,10).then((hash_password)=>{
+        db.users.create(
+        {
+        username: "Admin",
+        password: hash_password, // all passwords are hashed for safety
+        name: "John",
+        lastname: "Wick",
+        email: "housing_Admin@gmail.com",
+        telephone: 6256999675, //maybe fix this(for the additional +30 at the start)
+        active: true,
+        isTenant: false,  // depends
+        isLandlord: false, // depends
+        isAdmin: true
+        })
+      })  
+      
+}
+
+//  SYNCHRONISE WITH MYSQL 
 db.sequelize.sync({force: false}).then(() => {
     console.log("Re-sync done")
 })
+
+//  CREATE ADMIN  - CAN COMMENT OUT IF IT'S ASSURED THAT ADMIN ALREADY EXISTS
+  .then(
+    (res)=> db.users.findAll({where:{isAdmin:true}})  // check if he already exists
+  ).then(
+    (users)=>users.length
+  ).then(
+    (length)=>{
+    if(length==0)                                    // if not , create him
+      createAdmin()
+    }
+  )
+
+// let cur= db.users.findAll()//{where:{isAdmin:true}})
+// .then((users)=>console.log(users.length))
+
+
+//console.log("users",db.users.length)
 
 module.exports = db

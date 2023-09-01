@@ -58,7 +58,24 @@ const addRoom = async (req,res) => {
         floor: req.body.floor,
         heating: req.body.heating,
         description: req.body.description,
-        userId: req.body.userId
+        userId: req.body.userId,
+        openStreetMapX:req.body.openStreetMapX,
+        openStreetMapY: req.body.openStreetMapY,
+        openStreetMapLabel: req.body.openStreetMapLabel,
+
+        country:req.body.country,
+        address: req.body.address,
+        accessibilityToMeansOfTransport: req.body.accessibilityToMeansOfTransport,
+        maxNumOfPeople: req.body.maxNumOfPeople,
+        cost: req.body.cost,
+        additionalCostPerPerson: req.body.additionalCostPerPerson,
+        roomType: req.body.roomType,
+        rules: req.body.rules,
+        numOfBeds: req.body.numOfBeds,
+        numOfBathrooms: req.body.numOfBathrooms,
+        numOfBedrooms: req.body.numOfBedrooms ,
+        livingRoomInfo: req.body.livingRoomInfo,
+        roomArea: req.body.roomArea
     }
 
     if(req.file) // if thumbnail is to be updated
@@ -166,7 +183,23 @@ const updateRoom = async(req,res) => {
         floor: req.body.floor,
         heating: req.body.heating,
         description: req.body.description,        
-        userId: req.body.userId
+        userId: req.body.userId,
+        openStreetMapX:req.body.openStreetMapX,
+        openStreetMapY: req.body.openStreetMapY,
+        openStreetMapLabel: req.body.openStreetMapLabel,
+        country:req.body.country,
+        address: req.body.address,
+        accessibilityToMeansOfTransport: req.body.accessibilityToMeansOfTransport,
+        maxNumOfPeople: req.body.maxNumOfPeople,
+        cost: req.body.cost,
+        additionalCostPerPerson: req.body.additionalCostPerPerson,
+        roomType: req.body.roomType,
+        rules: req.body.rules,
+        numOfBeds: req.body.numOfBeds,
+        numOfBathrooms: req.body.numOfBathrooms,
+        numOfBedrooms: req.body.numOfBedrooms ,
+        livingRoomInfo: req.body.livingRoomInfo,
+        roomArea: req.body.roomArea
     }
 
     if(req.file) // if thumbnail is to be updated
@@ -177,11 +210,13 @@ const updateRoom = async(req,res) => {
         // remove old thumbnail from storage 
         const room =await Room.findByPk(Id,{attributes:["thumbnail_img"]}) 
         img_path = room.thumbnail_img
+        if(img_path){
         fs.unlink(img_path, function(err) {
             if (err) {
             console.error("Error occurred while trying to remove image");
             } 
         });
+    }
     }
 
     await Room.update(

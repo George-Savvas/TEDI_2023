@@ -10,6 +10,7 @@ router.post('/login',userController.login)
 router.post('/usernameExists',userController.usernameExists)
 router.post('/emailExists',userController.emailExists)
 router.put('/update/:id',roomController.upload_profile,userController.updateUser)
+router.put('/updateUserImage/:id', roomController.upload_profile, userController.updateImage)
 router.put('/activate/:id',userController.activateUser)
 router.delete('/delete/:id',userController.deleteUser)
 
