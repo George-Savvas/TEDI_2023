@@ -75,7 +75,10 @@ const addRoom = async (req,res) => {
         numOfBathrooms: req.body.numOfBathrooms,
         numOfBedrooms: req.body.numOfBedrooms ,
         livingRoomInfo: req.body.livingRoomInfo,
-        roomArea: req.body.roomArea
+        roomArea: req.body.roomArea,
+        countryId: req.body.countryId,
+        stateId: req.body.stateId,
+        cityId: req.body.cityId
     }
 
     if(req.file) // if thumbnail is to be updated
@@ -205,7 +208,10 @@ const updateRoom = async(req,res) => {
         numOfBathrooms: req.body.numOfBathrooms,
         numOfBedrooms: req.body.numOfBedrooms ,
         livingRoomInfo: req.body.livingRoomInfo,
-        roomArea: req.body.roomArea
+        roomArea: req.body.roomArea,
+        countryId: req.body.countryId,
+        stateId: req.body.stateId,
+        cityId: req.body.cityId
     }
 
     if(req.file) // if thumbnail is to be updated
