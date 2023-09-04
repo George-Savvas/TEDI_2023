@@ -171,6 +171,12 @@ const getRoomById = async(req,res) => {
     res.status(200).json({room: room})
 }
 
+const getUserRooms = async (req,res) => {
+    let UserId=req.params.userId
+    let rooms = await Room.findAll({where:{userId:UserId}})
+    res.status(200).json({rooms: rooms})
+}
+
 const updateRoom = async(req,res) => {
     let Id=req.params.id
     
@@ -412,6 +418,7 @@ module.exports = {
     addRoom,
     getAllRooms,
     getRoomById,
+    getUserRooms,
     getAvailableRooms,
     updateRoom,
     deleteRoom,

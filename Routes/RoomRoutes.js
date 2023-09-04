@@ -19,6 +19,8 @@ router.get('/getAllRooms', roomController.getAllRooms)
 
 router.get('/viewRoom/:id', roomController.getRoomById)
 
+router.get('/getUserRooms/:id', roomController.getUserRooms)
+
 router.get('/getAvailableRooms', roomController.getAvailableRooms)
 
 router.put('/update/:id', roomController.upload_thumbnail,roomController.updateRoom)
