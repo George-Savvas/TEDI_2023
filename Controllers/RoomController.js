@@ -239,6 +239,32 @@ const updateRoom = async(req,res) => {
 }
 
 
+const getRoomsByFilters = async(req,res) =>{
+
+let RoomInfo={   
+countryId:req.body.countryId
+}
+
+function addIfNotNull(key,value,Info){
+    if(value)
+        Info[key] = value            
+}
+
+addIfNotNull("cityId",req.body.cityId,RoomInfo)
+addIfNotNull("heating",req.body.heating,RoomInfo)
+addIfNotNull("maxNumOfPeople",req.body.maxNumOfPeople,RoomInfo)
+addIfNotNull("roomType",req.body.roomType,RoomInfo)
+addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
+addIfNotNull("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
+addIfNotNull("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
+addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
+
+const rooms =await Room.findAll({where:RoomInfo}) 
+
+res.status(200).json({rooms: rooms})
+
+}
+
 const deleteRoom = async(req,res) => {
     let Id=req.params.id
 
@@ -426,6 +452,7 @@ module.exports = {
     getRoomById,
     getUserRooms,
     getAvailableRooms,
+    getRoomsByFilters,
     updateRoom,
     deleteRoom,
     set_1_year_Availability,
@@ -438,5 +465,5 @@ module.exports = {
     getImages,
     getImageByPath,
     deleteImage , 
-    upload_profile
+    upload_profile  
 }

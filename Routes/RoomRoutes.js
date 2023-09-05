@@ -23,6 +23,8 @@ router.get('/getUserRooms/:id', roomController.getUserRooms)
 
 router.get('/getAvailableRooms', roomController.getAvailableRooms)
 
+router.get('/getRoomsByFilters', roomController.getRoomsByFilters)
+
 router.put('/update/:id', roomController.upload_thumbnail,roomController.updateRoom)
 
 router.delete('/delete/:id',roomController.deleteRoom)

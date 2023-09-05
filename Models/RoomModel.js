@@ -42,9 +42,9 @@ module.exports = (sequelize, DataTypes) => {
 ///////  NEW STUFF:
         
     country:{type: DataTypes.STRING},
-    countryId:{type: DataTypes.INTEGER},
-    stateId:{type: DataTypes.INTEGER},
-    cityId:{type: DataTypes.INTEGER},
+    countryId:{type: DataTypes.STRING},
+    stateId:{type: DataTypes.STRING},
+    cityId:{type: DataTypes.STRING},
     address: {type: DataTypes.STRING},
     accessibilityToMeansOfTransport: {type: DataTypes.STRING},
     maxNumOfPeople: {type: DataTypes.INTEGER},
