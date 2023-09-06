@@ -124,10 +124,18 @@ const updateImage = async (req,res) => {
     })
 }
 
+    if(req.file){
     await User.update(
         {profile_img: req.file.path},
         {where: {id: Id}}
     )
+    }
+    else{
+        await User.update(
+            {profile_img: null},
+            {where: {id: Id}}
+        )
+    }
 
     res.status(200).json({message: "User image updated succesfully!"})
 }

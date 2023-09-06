@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     const Room = sequelize.define("rooms", {
         //id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
         name: {type: DataTypes.STRING,allowNull: false},
-        price: {type: DataTypes.INTEGER ,allowNull: false},
+        price: {type: DataTypes.INTEGER ,allowNull: false},//DEL
         //location: {type: DataTypes.STRING},
         space: {type: DataTypes.INTEGER},
         floor: {type: DataTypes.INTEGER},
@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
         thumbnail_img:{type:DataTypes.STRING},
         num_of_images: {type: DataTypes.INTEGER}, // must be under 10
         
-//         num_of_people:{type: DataTypes.INTEGER},
 //         max_people:{type: DataTypes.INTEGER},
 //         extra_price_per_person: {type: DataTypes.INTEGER}, //if (n> num_of_people){ total price+= (n-num_of_people)*extra_price_per_person.. }
 //         summary:{type: DataTypes.TEXT},
@@ -47,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     cityId:{type: DataTypes.STRING},
     address: {type: DataTypes.STRING},
     accessibilityToMeansOfTransport: {type: DataTypes.STRING},
+    numOfPeople:{type: DataTypes.INTEGER},
     maxNumOfPeople: {type: DataTypes.INTEGER},
     cost: {type: DataTypes.INTEGER},
     additionalCostPerPerson: {type: DataTypes.INTEGER},

@@ -66,6 +66,7 @@ const addRoom = async (req,res) => {
         country:req.body.country,
         address: req.body.address,
         accessibilityToMeansOfTransport: req.body.accessibilityToMeansOfTransport,
+        numOfPeople: req.body.numOfPeople,
         maxNumOfPeople: req.body.maxNumOfPeople,
         cost: req.body.cost,
         additionalCostPerPerson: req.body.additionalCostPerPerson,
@@ -199,6 +200,7 @@ const updateRoom = async(req,res) => {
         country:req.body.country,
         address: req.body.address,
         accessibilityToMeansOfTransport: req.body.accessibilityToMeansOfTransport,
+        numOfPeople: req.body.numOfPeople,
         maxNumOfPeople: req.body.maxNumOfPeople,
         cost: req.body.cost,
         additionalCostPerPerson: req.body.additionalCostPerPerson,
@@ -214,7 +216,7 @@ const updateRoom = async(req,res) => {
         cityId: req.body.cityId
     }
 
-    if(req.file) // if thumbnail is to be updated
+    if(req.file  ) // if thumbnail is to be replaced/added
     {
         // add new thumbnail path to RoomInfo 
         RoomInfo["thumbnail_img"] = req.file.path
@@ -222,6 +224,8 @@ const updateRoom = async(req,res) => {
         // remove old thumbnail from storage 
         const room =await Room.findByPk(Id,{attributes:["thumbnail_img"]}) 
         img_path = room.thumbnail_img
+        
+        
         if(img_path){
         fs.unlink(img_path, function(err) {
             if (err) {
@@ -230,7 +234,7 @@ const updateRoom = async(req,res) => {
         });
     }
     }
-
+    
     await Room.update(
         RoomInfo,
         {where: {id: Id}}
@@ -238,12 +242,36 @@ const updateRoom = async(req,res) => {
     res.status(200).json({message: "Information updated succesfully!"})
 }
 
+const noThumbnail = async(req,res) =>{ //if landlord wants to drop thumb_nail_img
+    Id=req.params.id
 
+    //remove from storage
+    const room =await Room.findByPk(Id,{attributes:["thumbnail_img"]}) 
+        img_path = room.thumbnail_img
+        
+        
+        if(img_path){
+            fs.unlink(img_path, function(err) {
+                if (err) {
+                console.error("Error occurred while trying to remove image");
+                } 
+            });
+        }
+
+    //remove from room's columns
+    await Room.update(
+        {thumbnail_img:null},
+        {where: {id: Id}}
+        )
+        res.status(200).json({message: "Thumbnail removed succesfully!"})   
+}
+// syndyase tin  getRoomsByFilters me ti get_available
 const getRoomsByFilters = async(req,res) =>{
 
 let RoomInfo={   
 countryId:req.body.countryId
 }
+let NumOfPeople= req.body.numOfPeople
 
 function addIfNotNull(key,value,Info){
     if(value)
@@ -252,18 +280,168 @@ function addIfNotNull(key,value,Info){
 
 addIfNotNull("cityId",req.body.cityId,RoomInfo)
 addIfNotNull("heating",req.body.heating,RoomInfo)
-addIfNotNull("maxNumOfPeople",req.body.maxNumOfPeople,RoomInfo)
 addIfNotNull("roomType",req.body.roomType,RoomInfo)
 addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
 addIfNotNull("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
 addIfNotNull("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
 addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
 
-const rooms =await Room.findAll({where:RoomInfo}) 
+const rooms =await Room.findAll
+        ({ 
+        where:{
+        [Op.and]:[
+            RoomInfo
+            ,
+            {numOfPeople:{
+            [Op.lte]: NumOfPeople
+            }},
+            {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+            [Op.gte]: NumOfPeople
+            }}    
+        ]
+    }
+    })  // tot_cost= cost+ extra* ext_cost
 
 res.status(200).json({rooms: rooms})
 
 }
+
+const getAvailableRoomsByFilters = async(req,res) =>{
+
+//  ESSENTIAL KEYS : numberOfpeople , Dates , country
+
+    let NumOfPeople= req.body.numOfPeople
+    let InDate=new Date(req.body.InDate)
+    let OutDate=new Date(req.body.OutDate)
+
+    let RoomInfo={    // RoomInfo collects most of the filters(all the equalities)
+        countryId:req.body.countryId
+        }
+
+
+//  ADD FILTERS IF THEY EXIST
+    function addIfNotNull(key,value,Info){
+        if(value)
+            Info[key] = value            
+    }
+
+    addIfNotNull("cityId",req.body.cityId,RoomInfo)
+    addIfNotNull("heating",req.body.heating,RoomInfo)
+    addIfNotNull("roomType",req.body.roomType,RoomInfo)
+    addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
+    addIfNotNull("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
+    addIfNotNull("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
+    addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
+    
+
+//  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
+    const unavailable_rooms = await Room.findAll(
+        {
+
+        attributes: ['id'],
+        
+        where:
+        {
+            [Op.and]:
+                [
+                RoomInfo,                
+                {numOfPeople:{
+                    [Op.lte]: NumOfPeople
+                }},
+                {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+                    [Op.gte]: NumOfPeople
+                }}
+            ]
+        }
+        ,
+
+        include: { 
+                model: Availability,
+                where:{
+                    //roomId:{$col: 'Room.id'}, AVOID,happens automatically
+
+                    date:{
+                        [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
+                        [Op.gte]: InDate
+                        },
+                    
+                    available:false
+                }
+            }
+                
+        });
+    
+    const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
+    
+// FIND THE AVAILABLE ( FIND ALL FILTERED ROOMS AND REMOVE THE UNAIVALABLE)
+    const rooms =await Room.findAll
+            ({ 
+            where:{
+            [Op.and]:
+            [
+                RoomInfo
+                ,
+                {numOfPeople:{
+                    [Op.lte]: NumOfPeople
+                }},
+                {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+                    [Op.gte]: NumOfPeople
+                }},
+                
+                {id:{[Op.notIn]:unavailable_Ids}} // DON'T KEEP IDS OF UNAIVALBLE ROOMS
+            ]
+        }
+        })  // tot_cost= cost+ extra* ext_cost
+    
+    res.status(200).json({rooms: rooms})
+    
+    }
+
+
+const getAvailableRooms= async(req,res)=>{  
+    let location=req.body.location
+    let InDate=new Date(req.body.InDate)
+    let OutDate=new Date(req.body.OutDate)
+
+    //rooms = await Room.findAll({where: location=location})
+    const unavailable_rooms = await Room.findAll(
+        {
+
+        attributes: ['id'],
+        
+        where:{location:location},
+            
+        include: { 
+                model: Availability,
+                where:{
+                    //roomId:{$col: 'Room.id'}, AVOID,happens automatically
+
+                    date:{
+                        [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
+                        [Op.gte]: InDate
+                        },
+                    
+                    available:false
+                }
+            }
+                
+        });
+    
+    const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
+    
+    const available_rooms = await Room.findAll(
+        {
+            where :
+            { 
+            location:location,
+            id:{[Op.notIn]:unavailable_Ids}
+            }
+        }
+    );
+/* */
+
+    res.status(200).json({rooms: available_rooms})//available_rooms})
+    }
 
 const deleteRoom = async(req,res) => {
     let Id=req.params.id
@@ -339,62 +517,16 @@ const set_1_year_Availability = async (req,res) => {
         currDate.setDate(currDate.getDate() + 1) // next day
     }   
 
-    const availabilities = await Availability.findAll( // maybe del
-        {include: { model: Room,
-        where: {
-            id: req.body.roomId
-          }}
-    })
+    // const availabilities = await Availability.findAll( // maybe del
+    //  //del     {include: { model: Room,
+    //     where: {
+    //         id: req.body.roomId
+    //       }}
+    // })
 
-    res.status(200).json({availabilities: availabilities})
-    //console.log(availabilities)
+    // res.status(200).json({availabilities: availabilities})
+    res.status(200).json({message: "Year long availabilities added!"})
 }
-
-const getAvailableRooms= async(req,res)=>{
-    let location=req.body.location
-    let InDate=new Date(req.body.InDate)
-    let OutDate=new Date(req.body.OutDate)
-
-    //rooms = await Room.findAll({where: location=location})
-    const unavailable_rooms = await Room.findAll(
-        {
-
-        attributes: ['id'],
-        
-        where:{location:location},
-            
-        include: { 
-                model: Availability,
-                where:{
-                    //roomId:{$col: 'Room.id'}, AVOID,happens automatically
-
-                    date:{
-                        [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
-                        [Op.gte]: InDate
-                        },
-                    
-                    available:false
-                }
-            }
-                
-        });
-    
-    const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
-    
-    const available_rooms = await Room.findAll(
-        {
-            where :
-            { 
-            location:location,
-            id:{[Op.notIn]:unavailable_Ids}
-            }
-        }
-    );
-/* */
-
-    res.status(200).json({rooms: available_rooms})//available_rooms})
-    }
-
 
 const changeAvailability = async(req,res) => {
     let RoomId =req.body.roomId
@@ -402,7 +534,7 @@ const changeAvailability = async(req,res) => {
     let OutDate = new Date(req.body.OutDate)
     let Available = req.body.available
 
-    const availabilities=await Availability.update(
+    const availabilities=await Availability.update( // returns count because it is update
         {   
             available:Available
         },
@@ -415,7 +547,7 @@ const changeAvailability = async(req,res) => {
             }
         })
 
-    res.status(200).json({availabilities: availabilities})
+    res.status(200).json({availabilities: availabilities}) 
     }
 /*
 const changeAvailability = async(req,res) => {
@@ -453,7 +585,9 @@ module.exports = {
     getUserRooms,
     getAvailableRooms,
     getRoomsByFilters,
+    getAvailableRoomsByFilters,
     updateRoom,
+    noThumbnail,
     deleteRoom,
     set_1_year_Availability,
     addAvailability,
