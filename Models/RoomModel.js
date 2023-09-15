@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     const Room = sequelize.define("rooms", {
         //id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
         name: {type: DataTypes.STRING,allowNull: false},
-        price: {type: DataTypes.INTEGER ,allowNull: false},//DEL
+        cost: {type: DataTypes.INTEGER,allowNull: false},
         //location: {type: DataTypes.STRING},
         space: {type: DataTypes.INTEGER},
         floor: {type: DataTypes.INTEGER},
@@ -48,7 +48,6 @@ module.exports = (sequelize, DataTypes) => {
     accessibilityToMeansOfTransport: {type: DataTypes.STRING},
     numOfPeople:{type: DataTypes.INTEGER},
     maxNumOfPeople: {type: DataTypes.INTEGER},
-    cost: {type: DataTypes.INTEGER},
     additionalCostPerPerson: {type: DataTypes.INTEGER},
     roomType: {type: DataTypes.STRING},
     rules: {type: DataTypes.TEXT},

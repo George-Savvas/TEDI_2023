@@ -265,6 +265,7 @@ const noThumbnail = async(req,res) =>{ //if landlord wants to drop thumb_nail_im
         )
         res.status(200).json({message: "Thumbnail removed succesfully!"})   
 }
+
 // syndyase tin  getRoomsByFilters me ti get_available
 const getRoomsByFilters = async(req,res) =>{
 
@@ -278,7 +279,11 @@ function addIfNotNull(key,value,Info){
         Info[key] = value            
 }
 
+addIfNotNull("countryId",req.body.countryId,RoomInfo)
 addIfNotNull("cityId",req.body.cityId,RoomInfo)
+addIfNotNull("stateId",req.body.stateId,RoomInfo)
+//addIfNotNull("cost",req.body.cost,RoomInfo) // maximum  
+
 addIfNotNull("heating",req.body.heating,RoomInfo)
 addIfNotNull("roomType",req.body.roomType,RoomInfo)
 addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
@@ -308,15 +313,13 @@ res.status(200).json({rooms: rooms})
 
 const getAvailableRoomsByFilters = async(req,res) =>{
 
-//  ESSENTIAL KEYS : numberOfpeople , Dates , country
+//  ESSENTIAL KEYS : numberOfpeople , Dates 
 
     let NumOfPeople= req.body.numOfPeople
     let InDate=new Date(req.body.InDate)
     let OutDate=new Date(req.body.OutDate)
 
-    let RoomInfo={    // RoomInfo collects most of the filters(all the equalities)
-        countryId:req.body.countryId
-        }
+    let RoomInfo={}   // RoomInfo collects most of the filters
 
 
 //  ADD FILTERS IF THEY EXIST
@@ -325,13 +328,19 @@ const getAvailableRoomsByFilters = async(req,res) =>{
             Info[key] = value            
     }
 
+    addIfNotNull("countryId",req.body.countryId,RoomInfo)
     addIfNotNull("cityId",req.body.cityId,RoomInfo)
+    addIfNotNull("stateId",req.body.stateId,RoomInfo)
+    addIfNotNull("cost",{[Op.lte]:req.body.cost},RoomInfo) // maximum  
     addIfNotNull("heating",req.body.heating,RoomInfo)
     addIfNotNull("roomType",req.body.roomType,RoomInfo)
     addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
     addIfNotNull("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
     addIfNotNull("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
     addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
+    addIfNotNull("countryId",req.body.countryId,RoomInfo)
+
+
     
 
 //  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
@@ -445,42 +454,50 @@ const getAvailableRooms= async(req,res)=>{
 
 const deleteRoom = async(req,res) => {
     let Id=req.params.id
+    
 
     // DELETE IMAGES FROM './images' CLEAR SPACE 
     //1) DELETE thumbnail_img
     const room=await Room.findByPk(Id,{
         attributes: ['thumbnail_img']
         })
-    const img_path=room.thumbnail_img    //const img_path = room.map((room) => room.thumbnail_img);
-    if(img_path ){  // if thumbnail_img != NULL 
-      fs.unlink(img_path, function(err) {
-        if (err) {
-            console.error("Error occurred while trying to remove image");
-        } 
-      });
-    }
-    //2) DELETE IMAGES 
-    const images = await Image.findAll({attributes: ['path'],where:{roomId:Id}})
-    if(images ){ // if room has any images
-        const paths = images.map((image) => image.path)
-        console.log("paths",paths)
-        for(let i=0;i<paths.length;i++){
-            console.log("path:",path[i])
-            fs.unlink(paths[i], function(err) {
+    
+    if (room == null) {  // 1) CHECK IF ID IS INVALID
+        res.status(200).json({message:"Room doesn't exist"});
+        }
+    
+    else{
+        const img_path=room.thumbnail_img    //const img_path = room.map((room) => room.thumbnail_img);
+        if(img_path ){  // if thumbnail_img != NULL 
+            fs.unlink(img_path, function(err) {
                 if (err) {
                     console.error("Error occurred while trying to remove image");
                 } 
-              });
+            });
         }
-    }
+        //2) DELETE IMAGES 
+        const images = await Image.findAll({attributes: ['path'],where:{roomId:Id}})
+        if(images ){ // if room has any images
+            const paths = images.map((image) => image.path)
+            console.log("paths",paths)
+            for(let i=0;i<paths.length;i++){
+                console.log("path:",path[i])
+                fs.unlink(paths[i], function(err) {
+                    if (err) {
+                        console.error("Error occurred while trying to remove image");
+                    } 
+                  });
+            }
+        }
 //////////////////////////////////    
 /////   DELETE ROOM
-    await Room.destroy({
-        where: {
-          id: Id
-        }
-      })
-      res.status(200).json({message: "Room deleted succesfully!"})  
+        await Room.destroy({
+            where: {
+              id: Id
+            }
+        })
+        res.status(200).json({message: "Room deleted succesfully!"})  
+    }
 }
 
 
@@ -494,7 +511,7 @@ const addAvailability = async (req,res) => {
         price: req.body.price,
         roomId:req.body.roomId        
     }
-
+/// periptosi na ypar hdh
     const availability=await Availability.create(Info)
     res.status(200).json({availability:availability})
     console.log(availability)
