@@ -8,12 +8,27 @@ const Availability = db.availabilities
 
 const addBooking = async (req,res) => {   
 
-    let BookingInfo = {
-        InDate: req.body.InDate,
-        OutDate : req.body.OutDate,
-        roomId : req.body.roomId,
-        userId: req.body.userId
-    }
+//1) MAKE THESE DATES FROM NOW ON UNAVAILABLE
+    await Availability.update( // returns count because it is update
+        {   
+            available:false
+        },
+        {where: {
+            roomId: req.body.roomId ,   // sequelize assumes we want op.AND when not specified
+            date: {
+                [Op.lt]: req.body.OutDate,  // we leave OutDate available for a "check-in" date
+                [Op.gte]: req.body.InDate
+              }
+            }
+        })
+
+// 2) CREATE THE BOOKING
+        let BookingInfo = {
+            InDate: req.body.InDate,
+            OutDate : req.body.OutDate,
+            roomId : req.body.roomId,
+            userId: req.body.userId
+        }
 
     const booking = await Booking.create(BookingInfo)
     res.status(200).json({booking: booking})

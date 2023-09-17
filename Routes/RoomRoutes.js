@@ -13,26 +13,25 @@ router.delete('/deleteImage/:id',roomController.deleteImage)
 
 router.post('/addAvailability', roomController.addAvailability)
 
-router.post('/set_1_year_Availability',roomController.set_1_year_Availability)
+router.post('/set_Availabilities/:roomId',roomController.set_Availabilities)
 
 router.get('/getAllRooms', roomController.getAllRooms)
 
 router.get('/viewRoom/:id', roomController.getRoomById)
 
-router.get('/getUserRooms/:id', roomController.getUserRooms)
+router.get('/getUserRooms/:userId', roomController.getUserRooms)
 
-router.get('/getAvailableRooms', roomController.getAvailableRooms)
-
-router.get('/getAvailableRoomsByFilters', roomController.getAvailableRoomsByFilters)
-
-router.get('/getRoomsByFilters', roomController.getRoomsByFilters)
+router.post('/getAvailableRoomsByFilters', roomController.getAvailableRoomsByFilters)
 
 router.put('/update/:id', roomController.upload_thumbnail,roomController.updateRoom)
+
 router.put('/noThumbnail/:id', roomController.noThumbnail)
 
 router.delete('/delete/:id',roomController.deleteRoom)
 
 router.put('/changeAvailability', roomController.changeAvailability)
+
+router.get('/getAvailableDates/:roomId',roomController.getAvailableDates)
 
 router.delete('/deleteDates',roomController.deleteDates)
 
