@@ -1,4 +1,5 @@
 const db = require('../Models')
+const func = require("./func");
 const {Sequelize, DataTypes} = require('sequelize')
 const Op = Sequelize.Op;
 const Room = db.rooms
@@ -54,7 +55,6 @@ const addRoom = async (req,res) => {
     let RoomInfo = {
         //id: req.body.id,
         name: req.body.name,
-        location: req.body.location,
         area: req.body.area,
         floor: req.body.floor,
         heating: req.body.heating,
@@ -88,17 +88,22 @@ const addRoom = async (req,res) => {
         // add new thumbnail path to RoomInfo 
         RoomInfo["thumbnail_img"] = req.file.path
     }
-    else 
-        console.log("no file")
+    // else 
+    //     console.log("no file")
 
     try {
       const room = await Room.create(RoomInfo)
-    
+      
+      console.log(req.body.InDate,req.body.OutDate,room.id)
+      func.set_avail_dates_func(req.body.InDate,req.body.OutDate,room.id)
+
+      
       res.status(200).json({room: room})
       //console.log(room)
     }catch(error) {
        res.status(400).send(error);
     }
+    
 }
 
 // images (except for thumbnail)
@@ -148,19 +153,24 @@ const deleteImage = async (req,res) => {
 
     // unlink image form ./images
     const image =await Image.findByPk(Id) 
-    img_path =image.path
-    fs.unlink(img_path, function(err) {
-        if (err) {
-            console.error("Error occurred while trying to remove image");
-        } 
-      });
+    if(!image) {
+        res.status(200).json({message:"Image not found"})
+    }
+    else {
+        img_path =image.path
+        fs.unlink(img_path, function(err) {
+            if (err) {
+                console.error("Error occurred while trying to remove image");
+            } 
+          });
 
-    // destroy image record
-    await Image.destroy({
-        where: {id:Id}
-        })
+        // destroy image record
+        await Image.destroy({
+            where: {id:Id}
+            })
 
-    res.status(200).json({message:"Image deleted succesfully"})
+        res.status(200).json({message:"Image deleted succesfully"})
+    }
 }
 
 
@@ -189,16 +199,16 @@ const updateRoom = async(req,res) => {
     let RoomInfo={   
         //id: req.body.id,
         name: req.body.name,
-        location: req.body.location,
-        area: req.body.area,
-        floor: req.body.floor,
+        // location: req.body.location,
+        // area: req.body.area,
+        // floor: req.body.floor,
         heating: req.body.heating,
         description: req.body.description,        
         userId: req.body.userId,
         openStreetMapX:req.body.openStreetMapX,
         openStreetMapY: req.body.openStreetMapY,
         openStreetMapLabel: req.body.openStreetMapLabel,
-        country:req.body.country,
+        // country:req.body.country,
         address: req.body.address,
         accessibilityToMeansOfTransport: req.body.accessibilityToMeansOfTransport,
         numOfPeople: req.body.numOfPeople,
@@ -274,7 +284,9 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     let NumOfPeople= req.body.numOfPeople
     let InDate=new Date(req.body.InDate)
     let OutDate=new Date(req.body.OutDate)
-
+    let SecondToLastDate= new Date(req.body.OutDate)
+    SecondToLastDate.setDate(OutDate.getDate() - 1) 
+    
     let RoomInfo={}   // RoomInfo collects most of the filters
 
 
@@ -297,6 +309,8 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     addIfNotNull("countryId",req.body.countryId,RoomInfo)
 
 //  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
+
+//unavailable_rooms are those whose at least 1 day in [InDate,OutDate) is not available
     const unavailable_rooms = await Room.findAll(
         {
 
@@ -332,15 +346,16 @@ const getAvailableRoomsByFilters = async(req,res) =>{
             }
                 
         });
-    
+
     const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
-    
-// FIND THE AVAILABLE ( FIND ALL FILTERED ROOMS AND REMOVE THE UNAIVALABLE)
-    const rooms =await Room.findAll
-            ({ 
-            where:{
+
+    const rooms = await Room.findAll(
+    {
+        where:{
             [Op.and]:
-            [
+              [   
+                {id:{[Op.notIn]:unavailable_Ids}}
+                ,
                 RoomInfo
                 ,
                 {numOfPeople:{
@@ -348,16 +363,112 @@ const getAvailableRoomsByFilters = async(req,res) =>{
                 }},
                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
                     [Op.gte]: NumOfPeople
-                }},
-                
-                {id:{[Op.notIn]:unavailable_Ids}} // DON'T KEEP IDS OF UNAIVALBLE ROOMS
-            ]
+                }}
+              ]
+
         },
-        //!!!!!!!!!!!!!!  sequelize.fn
+
+        include: [
+        {
+          model: Availability,
+          //required: true,
+          where:{ date:InDate ,available:true}
+        },
+        {
+          model: Availability,
+          //required: true,
+          where:{ date:SecondToLastDate} // Outdate can be unavailable, it's assumed check outs are before checkins of same day
+        }]
+        ,
         order: 
             [['cost', 'ASC']]
-        })  // tot_cost= cost+ extra* ext_cost
+    })  // tot_cost= cost+ extra* ext_cost
+
+
+
+// unavailable_rooms are those whose at least 1 day in [InDate,OutDate) is not available
+//     const unavailable_rooms = await Room.findAll(
+//         {
+
+//         attributes: ['id'],
+        
+//         where:
+//         {
+//             [Op.and]:
+//                 [
+//                 RoomInfo,                
+//                 {numOfPeople:{
+//                     [Op.lte]: NumOfPeople
+//                 }},
+//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+//                     [Op.gte]: NumOfPeople
+//                 }}
+//             ]
+//         }
+//         ,
+
+//         include: { 
+//                 model: Availability,
+//                 where:{
+//                     //roomId:{$col: 'Room.id'}, AVOID,happens automatically
+
+//                     date:{
+//                         [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
+//                         [Op.gte]: InDate
+//                         },
+                    
+//                     available:false
+//                 }
+//             }
+                
+//         });
     
+//     const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
+    
+
+
+// // FIND THE AVAILABLE ( FIND ALL FILTERED ROOMS AND REMOVE THE UNAIVALABLE)
+//     const rooms =await Room.findAll
+//             ({ 
+//             where:{
+//             [Op.and]:
+//             [
+//                 RoomInfo
+//                 ,
+//                 {numOfPeople:{
+//                     [Op.lte]: NumOfPeople
+//                 }},
+//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+//                     [Op.gte]: NumOfPeople
+//                 }},
+//                 // Unavailable rooms 1 : 
+//                 {id:{[Op.notIn]:unavailable_Ids}} // DON'T KEEP IDS OF UNAIVALBLE ROOMS we found above
+//             ],
+//             // Unavailable rooms 2: 
+//             //  !! this is only for Airbnb dataset : because it has past dates 
+//             //  the Dataset has past Dates that some rooms not even include 
+//             //  we check if the first and second to last date exist 
+//             // include: [
+//             //     {
+//             //       model: Availability,
+//             //       //required: true,
+//             //       where:{ date: req.body.InDate }
+//             //     }]//del
+//                 // },
+//                 // {
+//                 //   model: Availability,
+//                 //   //required: true,
+//                 //   where:{ date:req.body.OutDate}//SecondToLastDate} // Outdate can be unavailable(and thus not exist)
+//                 // }]                              // , it's assumed check outs are before checkins of same day
+        
+//         },
+//         //!!!!!!!!!!!!!!  sequelize.fn
+//         order: 
+//             [['cost', 'ASC']]
+//         })  // tot_cost= cost+ extra* ext_cost
+
+//     console.log(req.body.InDate,req.body.OutDate)
+//     console.log(InDate,SecondToLastDate,OutDate)
     res.status(200).json({rooms: rooms})
     
     }
@@ -422,7 +533,7 @@ const addAvailability = async (req,res) => {
         roomId:req.body.roomId        
     }
 /// periptosi na ypar hdh
-    const availability=await Availability.create(Info)
+    const availability=await Availability.findOrCreate({where:Info})
     res.status(200).json({availability:availability})
     console.log(availability)
 }
@@ -432,18 +543,30 @@ const set_Availabilities = async (req,res) => {
     let OutDate = new Date(req.body.OutDate)
     let currDate = new Date(req.body.InDate)
     
-    while(currDate <= OutDate){
+    console.log(req.body.OutDate,OutDate)
+
+    // findmax(date) from Availabilities , if InDate> (apo In eos Out)else If maxdate>  (bale apo maxdate eos OutDate)
+    
+    await db.availabilities.findOne({
+        order: 
+        [sequelize.fn('max', sequelize.col('date'))]
+    })
+    
+    
+    
+
+    do {
     
         let Date = currDate.toJSON().slice(0,10)  // we give it the form of a DATE datatype (by keeping the first 10 characters)
-       
-        await db.availabilities.create({
+        
+        await db.availabilities.findOrCreate({where:{
             date: Date,
             available:true,
             //price: req.body.price,
-            roomId:req.params.roomId}) 
+            roomId:req.params.roomId}}) 
 
         currDate.setDate(currDate.getDate() + 1) // next day
-    }   
+    } while(currDate <= OutDate)
 
     res.status(200).json({message: "Availabilities added!"})
 }
@@ -469,8 +592,27 @@ const changeAvailability = async(req,res) => {
 
     res.status(200).json({availabilities: availabilities}) 
     }
-    
+
 const getAvailableDates = async(req,res) => {
+    
+    const availabilities = await Availability.findAll(
+            {
+    
+            attributes: ['date','available'],
+            
+            where: {roomId: req.params.roomId},
+    
+            order: 
+            [['date', 'ASC']]
+            
+            }
+        )
+    
+        //const dates = Availabilities_true.map((avail) => avail.date)
+        res.status(200).json({availabilities:availabilities })
+        }    
+
+const getAvailableDates1 = async(req,res) => {
     
 
     const Availabilities_true = await Availability.findAll(
@@ -492,10 +634,9 @@ const getAvailableDates = async(req,res) => {
 
 //////// maybe delete: /////////////////
 const deleteDates= async(req,res) => {
-    //let datekey=req.params.datekey
     await Availability.destroy({
         where: {
-            //datekey:datekey 
+            roomId:req.params.roomId 
         }
         //truncate: true
       })

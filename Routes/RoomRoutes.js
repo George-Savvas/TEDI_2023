@@ -33,6 +33,6 @@ router.put('/changeAvailability', roomController.changeAvailability)
 
 router.get('/getAvailableDates/:roomId',roomController.getAvailableDates)
 
-router.delete('/deleteDates',roomController.deleteDates)
+router.delete('/deleteDates/:roomId',roomController.deleteDates)
 
 module.exports = router

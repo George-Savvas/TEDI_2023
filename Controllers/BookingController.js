@@ -1,5 +1,6 @@
 const db = require('../Models')
-//const {Sequelize, DataTypes} = require('sequelize')
+const {Sequelize, DataTypes} = require('sequelize')
+const Op = Sequelize.Op;
 
 const Booking = db.bookings
 const Room = db.rooms
