@@ -547,10 +547,10 @@ const set_Availabilities = async (req,res) => {
 
     // findmax(date) from Availabilities , if InDate> (apo In eos Out)else If maxdate>  (bale apo maxdate eos OutDate)
     
-    await db.availabilities.findOne({
-        order: 
-        [sequelize.fn('max', sequelize.col('date'))]
-    })
+    // await db.availabilities.findOne({
+    //     order: 
+    //     [sequelize.fn('max', sequelize.col('date'))]
+    // })
     
     
     
