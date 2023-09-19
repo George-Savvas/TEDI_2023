@@ -4,9 +4,7 @@ module.exports = (sequelize, DataTypes) => {
         //id: {type: DataTypes.INTEGER, primaryKey: true, allowNull: false},
         name: {type: DataTypes.STRING,allowNull: false},
         cost: {type: DataTypes.INTEGER,allowNull: false},
-        //location: {type: DataTypes.STRING},
         space: {type: DataTypes.INTEGER},
-        floor: {type: DataTypes.INTEGER},
         num_of_floors:{type: DataTypes.INTEGER},
         heating: {type: DataTypes.BOOLEAN},
         description: {type: DataTypes.TEXT},
@@ -40,7 +38,6 @@ module.exports = (sequelize, DataTypes) => {
         openStreetMapLabel:{type: DataTypes.STRING},
 ///////  NEW STUFF:
         
-    country:{type: DataTypes.STRING},
     countryId:{type: DataTypes.STRING},
     stateId:{type: DataTypes.STRING},
     cityId:{type: DataTypes.STRING},
@@ -55,7 +52,10 @@ module.exports = (sequelize, DataTypes) => {
     numOfBathrooms: {type: DataTypes.DOUBLE},
     numOfBedrooms: {type: DataTypes.INTEGER},
     livingRoomInfo: {type: DataTypes.STRING},
-    roomArea: {type: DataTypes.INTEGER}
+    roomArea: {type: DataTypes.INTEGER},
+    // minDate:{type:DataTypes.DATEONLY},
+    // maxDate:{type:DataTypes.DATEONLY}
+
 
 
 /////////   END OF NEW STUFF    //////////////////////
