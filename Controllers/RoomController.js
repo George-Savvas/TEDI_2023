@@ -299,7 +299,10 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     addIfNotNull("countryId",req.body.countryId,RoomInfo)
     addIfNotNull("cityId",req.body.cityId,RoomInfo)
     addIfNotNull("stateId",req.body.stateId,RoomInfo)
-    addIfNotNull("cost",{[Op.lte]:req.body.cost},RoomInfo) // maximum  
+    
+    if(req.body.maxCost)
+        RoomInfo["cost"] = {[Op.lte]:req.body.maxCost} 
+
     addIfNotNull("heating",req.body.heating,RoomInfo)
     addIfNotNull("roomType",req.body.roomType,RoomInfo)
     addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
@@ -378,8 +381,8 @@ const getAvailableRoomsByFilters = async(req,res) =>{
           model: Availability,
           //required: true,
           where:{ date:SecondToLastDate} // Outdate can be unavailable, it's assumed check outs are before checkins of same day
-        }]
-        ,
+        }],
+
         order: 
             [['cost', 'ASC']]
     })  // tot_cost= cost+ extra* ext_cost
@@ -547,13 +550,16 @@ const set_Availabilities = async (req,res) => {
 
     // findmax(date) from Availabilities , if InDate> (apo In eos Out)else If maxdate>  (bale apo maxdate eos OutDate)
     
-    // await db.availabilities.findOne({
+    // await db.availabilities.findAll({
     //     order: 
-    //     [sequelize.fn('max', sequelize.col('date'))]
+    //     [Sequelize.fn('max', Sequelize.col('date'))]
     // })
     
-    
-    
+    let max_date = await Availability.max('date',{where:{roomId:req.params.roomId}})
+    let min_date = await Availability.max('date',{where:{roomId:req.params.roomId}})
+    let maxDate = new Date(max_date)
+    let minDate = new Date(min_date)
+
 
     do {
     
@@ -568,6 +574,7 @@ const set_Availabilities = async (req,res) => {
         currDate.setDate(currDate.getDate() + 1) // next day
     } while(currDate <= OutDate)
 
+    console.log(max_date)
     res.status(200).json({message: "Availabilities added!"})
 }
 
