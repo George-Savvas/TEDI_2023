@@ -11,7 +11,7 @@ router.get('/getImageByPath', roomController.getImageByPath)
 
 router.delete('/deleteImage/:id',roomController.deleteImage)
 
-router.post('/addAvailability', roomController.addAvailability)
+//router.post('/addAvailability', roomController.addAvailability)
 
 router.post('/set_Availabilities/:roomId',roomController.set_Availabilities)
 

@@ -127,45 +127,6 @@ targetKey: "id",
 });
 
 
-// async function createAdmin() {
-//   let admins=await db.users.findAll({where:{isAdmin:true}})
- 
-//     if(admins.length==0){ // cause we had to run Server multiple times 
-
-//       let Admin_password = "Admin123"
-//       bcrypt.hash(Admin_password,10).then((hash_password)=>{
-//         db.users.create(
-//         {
-//         username: "Admin",
-//         password: hash_password, // all passwords are hashed for safety
-//         name: "John",
-//         lastname: "Wick",
-//         email: "housing_Admin@gmail.com",
-//         telephone: 6256699675, //maybe fix this(for the additional +30 at the start)
-//         active: true,
-//         isTenant: false,  // depends
-//         isLandlord: false, // depends
-//         isAdmin: true
-//         })
-//       })  
-//     }  
-  
-// }
-
-//createAdmin()
-   /* 
-// test how Dates work
-var dates = new Array();
-const currDate=new Date('2023-07-20')   
-const endDate=new Date('2023-07-25')
-while(currDate<endDate){
-    //console.log(currDate)
-    //currDate.setDate(currDate + 1)
-    currDate.setDate(currDate.getDate() + 1)
-    dates.push(currDate.toJSON().slice(0,10))
-}
-console.log(dates)
-
 /* */
 
 //Admin Creation

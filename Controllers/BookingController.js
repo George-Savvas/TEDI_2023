@@ -36,8 +36,7 @@ const addBooking = async (req,res) => {
     //console.log(booking)
 }
 
-// !!!! IMPORTANT : for every addBooking request a changeAvailability(RoomController) request  
-//                  should be made for the same dates(to update the callendar)
+
 
 /*
 const getBooking = async(req,res) => {    
@@ -75,12 +74,6 @@ const getRoomBookings = async(req,res) => {
     res.status(200).json({bookings:bookings})
 }
 
-/*
-const getBookingById = async(req,res) => {    
-    let Id=req.params.id
-    ...
-}
-/* */
 
 // updateBooking:Doesn't exist probably if user wants to update dates 
 // then it's better to delete old booking and for a new to be created  
@@ -88,14 +81,40 @@ const getBookingById = async(req,res) => {
 
 const deleteBookingById = async(req,res) => {
     let Id=req.params.id
+
+// 1) find booking
+    let booking= await Booking.findOne({
+        //attributes: ['roomId','InDate','OutDate'],
+        where: {
+          id: Id
+        }
+    })
+
+    if(booking!=null){
+// 2) make dates available    
+    await Availability.update( // returns count because it is update
+        {   
+        available:true
+        },
+        {where: {
+            roomId: booking.roomId ,   // sequelize assumes we want op.AND when not specified
+            date: {
+                [Op.lt]: booking.OutDate,  // we leave OutDate available for a "check-in" date
+                [Op.gte]: booking.InDate
+            }
+        }
+    })
+
+  // 3) destroy booking 
     await Booking.destroy({
         where: {
           id: Id
         }
       })
       res.status(200).json({message: "Booking deleted succesfully!"})  
-    
-    // make room available
+    }
+    else
+        res.status(200).json({message: "Booking doesn't exist!"})  
 }
 
 // !!!! IMPORTANT : for every deleteBookingById request a changeAvailability(RoomController) request  

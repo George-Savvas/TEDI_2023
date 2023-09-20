@@ -388,90 +388,6 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     })  // tot_cost= cost+ extra* ext_cost
 
 
-
-// unavailable_rooms are those whose at least 1 day in [InDate,OutDate) is not available
-//     const unavailable_rooms = await Room.findAll(
-//         {
-
-//         attributes: ['id'],
-        
-//         where:
-//         {
-//             [Op.and]:
-//                 [
-//                 RoomInfo,                
-//                 {numOfPeople:{
-//                     [Op.lte]: NumOfPeople
-//                 }},
-//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
-//                     [Op.gte]: NumOfPeople
-//                 }}
-//             ]
-//         }
-//         ,
-
-//         include: { 
-//                 model: Availability,
-//                 where:{
-//                     //roomId:{$col: 'Room.id'}, AVOID,happens automatically
-
-//                     date:{
-//                         [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
-//                         [Op.gte]: InDate
-//                         },
-                    
-//                     available:false
-//                 }
-//             }
-                
-//         });
-    
-//     const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
-    
-
-
-// // FIND THE AVAILABLE ( FIND ALL FILTERED ROOMS AND REMOVE THE UNAIVALABLE)
-//     const rooms =await Room.findAll
-//             ({ 
-//             where:{
-//             [Op.and]:
-//             [
-//                 RoomInfo
-//                 ,
-//                 {numOfPeople:{
-//                     [Op.lte]: NumOfPeople
-//                 }},
-//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
-//                     [Op.gte]: NumOfPeople
-//                 }},
-//                 // Unavailable rooms 1 : 
-//                 {id:{[Op.notIn]:unavailable_Ids}} // DON'T KEEP IDS OF UNAIVALBLE ROOMS we found above
-//             ],
-//             // Unavailable rooms 2: 
-//             //  !! this is only for Airbnb dataset : because it has past dates 
-//             //  the Dataset has past Dates that some rooms not even include 
-//             //  we check if the first and second to last date exist 
-//             // include: [
-//             //     {
-//             //       model: Availability,
-//             //       //required: true,
-//             //       where:{ date: req.body.InDate }
-//             //     }]//del
-//                 // },
-//                 // {
-//                 //   model: Availability,
-//                 //   //required: true,
-//                 //   where:{ date:req.body.OutDate}//SecondToLastDate} // Outdate can be unavailable(and thus not exist)
-//                 // }]                              // , it's assumed check outs are before checkins of same day
-        
-//         },
-//         //!!!!!!!!!!!!!!  sequelize.fn
-//         order: 
-//             [['cost', 'ASC']]
-//         })  // tot_cost= cost+ extra* ext_cost
-
-//     console.log(req.body.InDate,req.body.OutDate)
-//     console.log(InDate,SecondToLastDate,OutDate)
     res.status(200).json({rooms: rooms})
     
     }
@@ -528,53 +444,49 @@ const deleteRoom = async(req,res) => {
 
 //////////  AVAILABILITIES:
 
-const addAvailability = async (req,res) => {
-    let Info={
-        date: req.body.date,
-        available:true,
-        price: req.body.price,
-        roomId:req.body.roomId        
-    }
-/// periptosi na ypar hdh
-    const availability=await Availability.findOrCreate({where:Info})
-    res.status(200).json({availability:availability})
-    console.log(availability)
-}
+// const addAvailability = async (req,res) => {
+//     let Info={
+//         date: req.body.date,
+//         available:true,
+//         price: req.body.price,
+//         roomId:req.body.roomId        
+//     }
+// /// periptosi na ypar hdh
+//     const availability=await Availability.findOrCreate({where:Info})
+//     res.status(200).json({availability:availability})
+//     console.log(availability)
+// }
 
 const set_Availabilities = async (req,res) => {
     
     let OutDate = new Date(req.body.OutDate)
+    OutDate.setDate(OutDate.getDate() + 1)
     let currDate = new Date(req.body.InDate)
     
     console.log(req.body.OutDate,OutDate)
-
-    // findmax(date) from Availabilities , if InDate> (apo In eos Out)else If maxdate>  (bale apo maxdate eos OutDate)
-    
-    // await db.availabilities.findAll({
-    //     order: 
-    //     [Sequelize.fn('max', Sequelize.col('date'))]
-    // })
-    
-    let max_date = await Availability.max('date',{where:{roomId:req.params.roomId}})
-    let min_date = await Availability.max('date',{where:{roomId:req.params.roomId}})
-    let maxDate = new Date(max_date)
-    let minDate = new Date(min_date)
-
 
     do {
     
         let Date = currDate.toJSON().slice(0,10)  // we give it the form of a DATE datatype (by keeping the first 10 characters)
         
-        await db.availabilities.findOrCreate({where:{
+        // check if availability already exists(then don't change anything because a booking may also exist) 
+        let avail = await db.availabilities.findOne({where:{
             date: Date,
-            available:true,
-            //price: req.body.price,
             roomId:req.params.roomId}}) 
+        
+        console.log("Date %s !",Date)
+        // // if it doesn't exist create it with available:true
+        if(avail==null){
+            await db.availabilities.create({
+                date: Date,
+                available:true,
+                //price: req.body.price,
+                roomId:req.params.roomId})
+        }
 
         currDate.setDate(currDate.getDate() + 1) // next day
-    } while(currDate <= OutDate)
+    } while(currDate < OutDate) //maxDate
 
-    console.log(max_date)
     res.status(200).json({message: "Availabilities added!"})
 }
 
@@ -619,6 +531,7 @@ const getAvailableDates = async(req,res) => {
         res.status(200).json({availabilities:availabilities })
         }    
 
+
 const getAvailableDates1 = async(req,res) => {
     
 
@@ -662,7 +575,7 @@ module.exports = {
     noThumbnail,
     deleteRoom,
     set_Availabilities,
-    addAvailability,
+    //addAvailability,
     getAvailableDates,
     deleteDates,//del
     changeAvailability,
