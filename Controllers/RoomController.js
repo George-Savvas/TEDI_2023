@@ -70,7 +70,7 @@ const addRoom = async (req,res) => {
         numOfPeople: req.body.numOfPeople,
         maxNumOfPeople: req.body.maxNumOfPeople,
         cost: req.body.cost,
-        additionalCostPerPerson: req.body.additionalCostPerPerson,
+        //additionalCostPerPerson: req.body.additionalCostPerPerson, // see if bellow 
         roomType: req.body.roomType,
         rules: req.body.rules,
         numOfBeds: req.body.numOfBeds,
@@ -82,6 +82,11 @@ const addRoom = async (req,res) => {
         stateId: req.body.stateId,
         cityId: req.body.cityId
     }
+
+    if(req.body.additionalCostPerPerson)
+        RoomInfo["additionalCostPerPerson"]=req.body.additionalCostPerPerson
+    else
+        RoomInfo["additionalCostPerPerson"]=0
 
     if(req.file) // if thumbnail is to be updated
     {
@@ -277,6 +282,11 @@ const noThumbnail = async(req,res) =>{ //if landlord wants to drop thumb_nail_im
         res.status(200).json({message: "Thumbnail removed succesfully!"})   
 }
 
+
+const sql =require('@sequelize/core');
+
+
+
 const getAvailableRoomsByFilters = async(req,res) =>{
 
 //  ESSENTIAL KEYS : numberOfpeople , Dates 
@@ -287,7 +297,6 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     let SecondToLastDate= new Date(req.body.OutDate)
     SecondToLastDate.setDate(OutDate.getDate() - 1) 
     
-    let RoomInfo={}   // RoomInfo collects most of the filters
 
 
 //  ADD FILTERS IF THEY EXIST
@@ -296,13 +305,13 @@ const getAvailableRoomsByFilters = async(req,res) =>{
             Info[key] = value            
     }
 
+    let RoomInfo={}   // RoomInfo collects most of the filters
+
+    RoomInfo["numOfPeople"] = {[Op.lte]:req.body.numOfPeople} // mandatory
+    RoomInfo["maxNumOfPeople"] = {[Op.gte]:req.body.numOfPeople} //mandatory
     addIfNotNull("countryId",req.body.countryId,RoomInfo)
     addIfNotNull("cityId",req.body.cityId,RoomInfo)
     addIfNotNull("stateId",req.body.stateId,RoomInfo)
-    
-    if(req.body.maxCost)
-        RoomInfo["cost"] = {[Op.lte]:req.body.maxCost} 
-
     addIfNotNull("heating",req.body.heating,RoomInfo)
     addIfNotNull("roomType",req.body.roomType,RoomInfo)
     addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
@@ -311,86 +320,175 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
     addIfNotNull("countryId",req.body.countryId,RoomInfo)
 
-//  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
+// //  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
 
-//unavailable_rooms are those whose at least 1 day in [InDate,OutDate) is not available
-    const unavailable_rooms = await Room.findAll(
-        {
+// //unavailable_rooms are those whose at least 1 day in [InDate,OutDate) is not available
+//     const unavailable_rooms = await Room.findAll(
+//         {
 
-        attributes: ['id'],
+//         attributes: ['id'],
         
-        where:
-        {
-            [Op.and]:
-                [
-                RoomInfo,                
-                {numOfPeople:{
-                    [Op.lte]: NumOfPeople
-                }},
-                {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
-                    [Op.gte]: NumOfPeople
-                }}
-            ]
-        }
-        ,
+//         where:
+//         {
+//             [Op.and]:
+//                 [
+//                 RoomInfo,                
+//                 {numOfPeople:{
+//                     [Op.lte]: NumOfPeople
+//                 }},
+//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+//                     [Op.gte]: NumOfPeople
+//                 }}
+//             ]
+//         }
+//         ,
 
-        include: { 
-                model: Availability,
-                where:{
-                    //roomId:{$col: 'Room.id'}, AVOID,happens automatically
+//         include: { 
+//                 model: Availability,
+//                 where:{
+//                     //roomId:{$col: 'Room.id'}, AVOID,happens automatically
 
-                    date:{
-                        [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
-                        [Op.gte]: InDate
-                        },
+//                     date:{
+//                         [Op.lt]: OutDate,  // we leave OutDate available for a "check-in" date
+//                         [Op.gte]: InDate
+//                         },
                     
-                    available:false
-                }
-            }
+//                     available:false
+//                 }
+//             }
                 
-        });
+//         });
 
-    const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
+//     const unavailable_Ids = unavailable_rooms.map((un_room) => un_room.id);
 
-    const rooms = await Room.findAll(
-    {
-        where:{
-            [Op.and]:
-              [   
-                {id:{[Op.notIn]:unavailable_Ids}}
-                ,
-                RoomInfo
-                ,
-                {numOfPeople:{
-                    [Op.lte]: NumOfPeople
-                }},
-                {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
-                    [Op.gte]: NumOfPeople
-                }}
-              ]
+//     const rooms = await Room.findAll(
+//     {
+//         where:{
+//             [Op.and]:
+//               [   
+//                 {id:{[Op.notIn]:unavailable_Ids}}
+//                 ,
+//                 RoomInfo
+//                 ,
+//                 {numOfPeople:{
+//                     [Op.lte]: NumOfPeople
+//                 }},
+//                 {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+//                     [Op.gte]: NumOfPeople
+//                 }}
+//               ]
 
-        },
+//         },
 
-        include: [
-        {
-          model: Availability,
-          //required: true,
-          where:{ date:InDate ,available:true}
-        },
-        {
-          model: Availability,
-          //required: true,
-          where:{ date:SecondToLastDate} // Outdate can be unavailable, it's assumed check outs are before checkins of same day
-        }],
+//         include: [
+//         {
+//           model: Availability,
+//           //required: true,
+//           where:{ date:InDate ,available:true}
+//         },
+//         {
+//           model: Availability,
+//           //required: true,
+//           where:{ date:SecondToLastDate} // Outdate can be unavailable, it's assumed check outs are before checkins of same day
+//         }],
 
-        order: 
-            [['cost', 'ASC']]
-    })  // tot_cost= cost+ extra* ext_cost
+//         order: 
+//             [['cost', 'ASC']]
+//     })  // tot_cost= cost+ extra* ext_cost
 
 
-    res.status(200).json({rooms: rooms})
+        // const where1={
+        //     [Op.and]:
+        //       [   
+        //         {id:{[Op.notIn]:unavailable_Ids}}
+        //         ,
+        //         RoomInfo
+        //         ,
+        //         {numOfPeople:{
+        //             [Op.lte]: NumOfPeople
+        //         }},
+        //         {maxNumOfPeople:{        // NumPeople must be between the minimum and maximum
+        //             [Op.gte]: NumOfPeople
+        //         }}
+        //     ]}
+
+        
+    //calculate days difference by dividing total milliseconds in a day  
+    let num_of_dates = (OutDate.getTime() - InDate.getTime()) / (1000 * 60 * 60 * 24);
+    let MaxCost= 1000000000000
+    // If not null acquire maxCost  
+    if(req.body.maxCost)
+        MaxCost=req.body.maxCost
+
+// FIND FILTERED ROOMS (APART FROM THEIR AVAILABILITY , MAXCOST)
+
+const filtered_rooms = await Room.findAll({where:RoomInfo})
+const filtered_Ids = filtered_rooms.map((room) => room.id);
+
+//FIND AVAILABLE ROOMS 
+
+//START OF QUERY 
+// got to line !!! 441, we check availability by checking if number of availble dates is same as ${num_of_dates}()
     
-    }
+const  [available_rooms, metadata] = await db.sequelize.query(    
+`SELECT 
+id,
+name,
+cost,
+space,
+floor,
+num_of_floors,
+heating,
+description,
+thumbnail_img,
+num_of_images,
+openStreetMapX,
+openStreetMapY,
+openStreetMapLabel,
+country,
+countryId,
+stateId,
+cityId,
+address,
+accessibilityToMeansOfTransport,
+numOfPeople,
+maxNumOfPeople,
+additionalCostPerPerson,
+roomType,
+rules,
+numOfBeds,
+numOfBathrooms,
+numOfBedrooms,
+livingRoomInfo,
+roomArea,
+userId,
+${num_of_dates}*(cost+additionalCostPerPerson*(${NumOfPeople}-numOfPeople)) as total_cost 
+    FROM rooms  
+    where            
+        id In (select roomId 
+            FROM availabilities  
+            where date >= ${JSON.stringify(req.body.InDate)} and date < ${JSON.stringify(req.body.OutDate)}
+                and available=true
+            group by roomId
+            having count(*)=${num_of_dates}
+            )
+group by id
+having total_cost < ${MaxCost}
+ORDER BY total_cost;`     
+    )  // It also filters maxCost because total_cost needed raw query to be estimated
+
+
+let final_rooms=[]
+
+for(const [key, avail_room] of Object.entries(available_rooms)){
+        if(filtered_Ids.includes(avail_room.id))
+            final_rooms.push(avail_room)
+}
+
+res.status(200).json({rooms: final_rooms})
+    
+}
+
 
 const deleteRoom = async(req,res) => {
     let Id=req.params.id

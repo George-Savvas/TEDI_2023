@@ -156,7 +156,7 @@ db.sequelize.sync({force: false}).then(() => {
     console.log("Re-sync done")
 })
 
-//  CREATE ADMIN  - CAN COMMENT OUT IF IT'S ASSURED THAT ADMIN ALREADY EXISTS
+//  CREATE ADMIN 
   .then(
     (res)=> db.users.findAll({where:{isAdmin:true}})  // check if he already exists
   ).then(

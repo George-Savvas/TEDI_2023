@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         heating: {type: DataTypes.BOOLEAN},
         description: {type: DataTypes.TEXT},
         thumbnail_img:{type:DataTypes.STRING},
+        floor:{type: DataTypes.INTEGER},
         num_of_images: {type: DataTypes.INTEGER}, // must be under 10
         
 //         max_people:{type: DataTypes.INTEGER},

@@ -15,6 +15,7 @@
     "nodemon": "^2.0.22"
   },
   "dependencies": {
+    "@sequelize/core": "^7.0.0-alpha.29",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
