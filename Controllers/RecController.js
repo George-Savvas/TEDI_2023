@@ -43,14 +43,15 @@ const getRecommendations = async(req,res)=>{
     R= new Array(N).fill(0).map(() => new Array(M).fill(0));
     
     console.log(room_ids[1],user_ids[0])
-    // for(let i=0 ;i < N ;i++){
-    //     for(let j=0 ;i < M ;j++){
-    //             if(booking rooms[j],users[i]-> R[i][j]=4 )
-        
-    //     for(r in room_ids){
-    //         R[]
-    //     }
-
+    for(let i=0 ;i < N ;i++){
+        for(let j=0 ;i < M ;j++){
+            const booking= await Booking.findOne({where: {roomId:room_ids[j],userId:user_ids[i]}})             
+            if( booking )
+                R[i][j]=5
+            //if(booking rooms[j],users[i]-> R[i][j]=4 )
+       }
+    }    
+    
     // }
     //R =
     res.status(200).json({message: N})
