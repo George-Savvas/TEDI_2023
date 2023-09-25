@@ -5,11 +5,9 @@ module.exports = (sequelize, DataTypes) => {
         name: {type: DataTypes.STRING,allowNull: false},
         cost: {type: DataTypes.INTEGER,allowNull: false},
         space: {type: DataTypes.INTEGER},
-        num_of_floors:{type: DataTypes.INTEGER},
         heating: {type: DataTypes.BOOLEAN},
         description: {type: DataTypes.TEXT},
         thumbnail_img:{type:DataTypes.STRING},
-        floor:{type: DataTypes.INTEGER},
         num_of_images: {type: DataTypes.INTEGER}, // must be under 10
         
 //         max_people:{type: DataTypes.INTEGER},
@@ -43,20 +41,19 @@ module.exports = (sequelize, DataTypes) => {
     stateId:{type: DataTypes.STRING},
     cityId:{type: DataTypes.STRING},
     address: {type: DataTypes.STRING},
-    accessibilityToMeansOfTransport: {type: DataTypes.STRING},
+    accessibilityToMeansOfTransport: {type: DataTypes.TEXT},
     numOfPeople:{type: DataTypes.INTEGER},
     maxNumOfPeople: {type: DataTypes.INTEGER},
     additionalCostPerPerson: {type: DataTypes.INTEGER},
     roomType: {type: DataTypes.STRING},
     rules: {type: DataTypes.TEXT},
-    numOfBeds: {type: DataTypes.STRING},
+    numOfBeds: {type: DataTypes.INTEGER},
     numOfBathrooms: {type: DataTypes.DOUBLE},
     numOfBedrooms: {type: DataTypes.INTEGER},
     livingRoomInfo: {type: DataTypes.STRING},
     roomArea: {type: DataTypes.INTEGER},
-    // minDate:{type:DataTypes.DATEONLY},
-    // maxDate:{type:DataTypes.DATEONLY}
-
+    number_of_reviews: {type: DataTypes.INTEGER},
+    review_scores_rating: {type: DataTypes.DOUBLE}
 
 
 /////////   END OF NEW STUFF    //////////////////////

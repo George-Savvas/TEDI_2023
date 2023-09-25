@@ -1,4 +1,7 @@
 const roomController = require('../Controllers/RoomController.js')
+const reviewController = require('../Controllers/ReviewController.js')
+const recController = require('../Controllers/RecController.js')
+
 const router = require('express').Router()
 
 router.post('/addRoom',roomController.upload_thumbnail,roomController.addRoom )
@@ -33,6 +36,10 @@ router.put('/changeAvailability', roomController.changeAvailability)
 
 router.get('/getAvailableDates/:roomId',roomController.getAvailableDates)
 
+router.get('/getRecommendations/:id',recController.getRecommendations) // id->userid
+
 router.delete('/deleteDates/:roomId',roomController.deleteDates)
+
+router.post('/addReview',reviewController.addReview)
 
 module.exports = router
