@@ -35,7 +35,8 @@ db.images = require('./ImageModel.js')(sequelize, DataTypes)
 db.availabilities = require('./AvailabilityModel.js')(sequelize, DataTypes)
 db.bookings = require('./BookingModel.js')(sequelize, DataTypes)
 db.reviews = require('./ReviewModel.js')(sequelize, DataTypes)
-
+db.searchHistories = require('./SearchHistoryModel.js')(sequelize, DataTypes)
+db.visits = require('./VisitModel.js')(sequelize, DataTypes)
 //Associations
 
 // a user has many rooms
@@ -62,6 +63,31 @@ foreignKey: "userId",
 targetKey: "id",
 });
 
+// a user has one SearchHistory 
+
+db.users.hasOne(db.searchHistories, {   
+  foreignKey: "userId",
+  sourceKey: "id",
+  onDelete:"cascade"
+});
+
+db.searchHistories.belongsTo(db.users, {
+foreignKey: "userId",
+targetKey: "id",
+});
+
+// a user has many Visits
+db.users.hasMany(db.visits, {   
+  foreignKey: "userId",
+  sourceKey: "id",
+  onDelete:"cascade"
+});
+
+db.visits.belongsTo(db.users, {
+foreignKey: "userId",
+targetKey: "id",
+});
+
 // a user has many Reviews
 db.users.hasMany(db.reviews, {   
   foreignKey: "userId",
@@ -73,6 +99,10 @@ db.reviews.belongsTo(db.users, {
 foreignKey: "userId",
 targetKey: "id",
 });
+
+
+// ASSOCIATIONS WITH ROOMS
+
 
 // a room has many images (excluding the thumbnail )
 /* */
@@ -114,7 +144,7 @@ db.bookings.belongsTo(db.rooms, {
 });
 
 // a room has many Reviews
-/* */
+
 db.rooms.hasMany(db.reviews, {   
   foreignKey: "roomId",
   sourceKey: "id",
@@ -126,7 +156,18 @@ foreignKey: "roomId",
 targetKey: "id",
 });
 
+// a room has many Visits
 
+db.rooms.hasMany(db.visits, {   
+  foreignKey: "roomId",
+  sourceKey: "id",
+  onDelete:"cascade",
+});
+
+db.visits.belongsTo(db.rooms, {
+foreignKey: "roomId",
+targetKey: "id",
+});
 /* */
 
 //Admin Creation

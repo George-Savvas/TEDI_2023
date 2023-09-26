@@ -19,6 +19,9 @@ app.use('/auth', userRouter)
 const bookingRouter = require('./Routes/BookingRoutes.js')
 app.use('/bookings', bookingRouter)
 
+const recRouter = require('./Routes/RecRoutes.js')
+app.use('/recommendations', recRouter)
+
 const fileRouter = require('./Routes/FileRoutes.js')
 app.use('/files', fileRouter)
 

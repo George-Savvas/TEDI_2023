@@ -134,7 +134,6 @@ const getImages = async (req,res) => {
     let RoomId= req.params.roomId
     
     const images =await Image.findAll({
-        //attributes: ['path','position'], //del
         where: {roomId:RoomId}
         })
 
