@@ -36,7 +36,7 @@ router.put('/changeAvailability', roomController.changeAvailability)
 
 router.get('/getAvailableDates/:roomId',roomController.getAvailableDates)
 
-router.get('/getRecommendations/:id',recController.getRecommendations) // id->userid
+router.get('/getRecommendations/:userId',recController.getRecommendations) // id->userid
 
 router.delete('/deleteDates/:roomId',roomController.deleteDates)
 

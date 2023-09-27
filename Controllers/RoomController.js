@@ -287,7 +287,6 @@ const getAvailableRoomsByFilters = async(req,res) =>{
 
 //  ESSENTIAL KEYS : numberOfpeople , Dates 
 
-    let NumOfPeople= req.body.numOfPeople
     let InDate=new Date(req.body.InDate)
     let OutDate=new Date(req.body.OutDate)
     let SecondToLastDate= new Date(req.body.OutDate)
@@ -296,25 +295,42 @@ const getAvailableRoomsByFilters = async(req,res) =>{
 
 
 //  ADD FILTERS IF THEY EXIST
-    function addIfNotNull(key,value,Info){
-        if(value)
+    function addEquality(key,value,Info){
+        if(value) // if not null
             Info[key] = value            
     }
 
-    let RoomInfo={}   // RoomInfo collects most of the filters
+    function addMin(key,value,Info){
+        if(value)
+            Info[key] = { [Op.gte]:value}            
+    }
 
+    function addMax(key,value,Info){
+        if(value)
+            Info[key] = { [Op.lte]:value}            
+    }
+
+    let RoomInfo={}   // RoomInfo collects most of the filters
+     
+    // numOfPeople-Key can't be more than the asked
     RoomInfo["numOfPeople"] = {[Op.lte]:req.body.numOfPeople} // mandatory
+    // maxNumOfPeople can't be less than what's asked
     RoomInfo["maxNumOfPeople"] = {[Op.gte]:req.body.numOfPeople} //mandatory
-    addIfNotNull("countryId",req.body.countryId,RoomInfo)
-    addIfNotNull("cityId",req.body.cityId,RoomInfo)
-    addIfNotNull("stateId",req.body.stateId,RoomInfo)
-    addIfNotNull("heating",req.body.heating,RoomInfo)
-    addIfNotNull("roomType",req.body.roomType,RoomInfo)
-    addIfNotNull("numOfBeds",req.body.numOfBeds,RoomInfo)
-    addIfNotNull("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
-    addIfNotNull("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
-    addIfNotNull("roomArea",req.body.roomArea,RoomInfo)
-    addIfNotNull("countryId",req.body.countryId,RoomInfo)
+
+    // PARADEIGMA - > diegrapse an den xreiazetai
+    addMax("roomArea",req.body.maxArea,RoomInfo)
+    addMin("roomArea",req.body.minArea,RoomInfo)
+///////////////////////////////////////////////
+
+    addEquality("countryId",req.body.countryId,RoomInfo)
+    addEquality("cityId",req.body.cityId,RoomInfo)
+    addEquality("stateId",req.body.stateId,RoomInfo)
+    addEquality("heating",req.body.heating,RoomInfo)
+    addEquality("roomType",req.body.roomType,RoomInfo)
+    addEquality("numOfBeds",req.body.numOfBeds,RoomInfo)
+    addEquality("numOfBathrooms",req.body.numOfBathrooms,RoomInfo)
+    addEquality("numOfBedrooms",req.body.numOfBedrooms,RoomInfo)
+//    addEquality("roomArea",req.body.roomArea,RoomInfo)
 
 // //  FIND ALL THE UNAVAILABLE ROOMS SATISFYING THE FILTERS
 

@@ -28,7 +28,7 @@ var MF = function (R,P,Q,steps=4000,l=0.0002,min_error=1) {
     let K=P[0].length // num of elements
     let eij=0
     for(let s=0;s<steps; s++){
-      if(s==1000 || s==2000 || s==3000 || s==4000)
+      if(s%50==0)
       console.log(s)
       for(let i =0;i<R.length ;i++){
   
@@ -71,7 +71,7 @@ var MF = function (R,P,Q,steps=4000,l=0.0002,min_error=1) {
 
 
 const getRecommendations = async(req,res)=>{
-    let K =  3
+    let K =  5
     
     const rooms = await Room.findAll({       
         order: 
@@ -80,20 +80,28 @@ const getRecommendations = async(req,res)=>{
     let room_ids = rooms.map((room) => room.id)
     
     const users = await User.findAll({
+        where:{isTenant:true},
         order: 
         [['id', 'ASC']]
     })
     let user_ids = users.map((user) => user.id)
 
+    user_ids=user_ids.slice(0, 20);
+    room_ids=room_ids.slice(0, 25);//fix this 
+
+    console.log("user_ids",user_ids)
     let N=user_ids.length
     let M=room_ids.length
-    
+ 
     user_index = u => {return user_ids.indexOf(u);}
     room_index = r => {return room_ids.indexOf(r);}
     
     R= new Array(N).fill(0).map(() => new Array(M).fill(0));
     
-    const bookings = await Booking.findAll() // isos thelei ascending
+    const bookings = await Booking.findAll(
+        {order: 
+        [['userId', 'ASC'],['roomId', 'ASC']] //del
+        }) // isos thelei ascending
 
     for(var b of bookings){
         let u=user_index(b.userId)
@@ -126,8 +134,34 @@ const getRecommendations = async(req,res)=>{
     
     MF(R,P,Q)
     let pred= mmultiply(P,Q)
-    let result = pred[user_index[req.params.userId]]
-    res.status(200).json({message: result})
+    console.log("pred",pred)
+    let result_scores = pred[user_index( parseInt(req.params.userId,10) )]//put body.params.userId
+//  
+//
+
+var result =[]
+for(let i=0 ; i<M ; i++){ 
+    result.push([room_ids[i],result_scores[i]])
+    }
+
+console.log(result)
+
+// sort based on score (the second element)
+result.sort(function(first, second) {
+   return second[1] - first[1];
+ });
+
+// //result =result.slice(0, 3) //not mandatory
+
+let res_rooms=[]
+for (const [r,score] of result )
+    res_rooms.push(r,score) 
+//     // if r in booked {continue}  // !!! important
+//     //else
+//     // const Room = await findByPk(r) ;rooms.push[room];
+    
+    res.status(200).json({rooms: res_rooms})
+
 }
 
 module.exports = { getRecommendations };
