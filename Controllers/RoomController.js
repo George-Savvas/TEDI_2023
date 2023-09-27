@@ -78,7 +78,9 @@ const addRoom = async (req,res) => {
         roomArea: req.body.roomArea,
         countryId: req.body.countryId,
         stateId: req.body.stateId,
-        cityId: req.body.cityId
+        cityId: req.body.cityId,
+        number_of_reviews: 0,
+        review_scores_rating:0
     }
 
     if(req.body.additionalCostPerPerson)
@@ -287,6 +289,7 @@ const getAvailableRoomsByFilters = async(req,res) =>{
 
 //  ESSENTIAL KEYS : numberOfpeople , Dates 
 
+    let NumOfPeople = req.body.numOfPeople
     let InDate=new Date(req.body.InDate)
     let OutDate=new Date(req.body.OutDate)
     let SecondToLastDate= new Date(req.body.OutDate)
@@ -313,9 +316,9 @@ const getAvailableRoomsByFilters = async(req,res) =>{
     let RoomInfo={}   // RoomInfo collects most of the filters
      
     // numOfPeople-Key can't be more than the asked
-    RoomInfo["numOfPeople"] = {[Op.lte]:req.body.numOfPeople} // mandatory
+    RoomInfo["numOfPeople"] = {[Op.lte]:NumOfPeople} // mandatory
     // maxNumOfPeople can't be less than what's asked
-    RoomInfo["maxNumOfPeople"] = {[Op.gte]:req.body.numOfPeople} //mandatory
+    RoomInfo["maxNumOfPeople"] = {[Op.gte]:NumOfPeople} //mandatory
 
     // PARADEIGMA - > diegrapse an den xreiazetai
     addMax("roomArea",req.body.maxArea,RoomInfo)
@@ -471,6 +474,8 @@ numOfBedrooms,
 livingRoomInfo,
 roomArea,
 userId,
+number_of_reviews,
+review_scores_rating,
 ${num_of_dates}*(cost+additionalCostPerPerson*(${NumOfPeople}-numOfPeople)) as total_cost 
     FROM rooms  
     where            
