@@ -10,7 +10,7 @@ const addSearchHistory= async (req,res) => {
     if(req.body.cityId){ // if cityId not Null then user must have searched country and state as well
         Info["countryId"] = req.body.countryId
         Info["stateId"] = req.body.stateId
-        Info["cityId"] = req.body.stateId
+        Info["cityId"] = req.body.countryId
 
         const old_history = await SearchHistory.findOne({where:{userId:req.params.userId}})
         

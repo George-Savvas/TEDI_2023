@@ -11,8 +11,8 @@ const Visit = db.visits
 
 
 var count = 0
-var P_matrix=[]
-var Q_matrix=[]
+let P_matrix=[]
+let Q_matrix=[]
 // function count(){
 //   count++
 // }
@@ -74,7 +74,7 @@ var MF = function (R,P,Q,steps=3000,l=0.0002,min_error=1) {
 // Recommendations function
 
 
-const getRecommendations = async(req,res)=>{
+const createRecommendations = async(req,res)=>{
     let K =  3
     
     const rooms = await Room.findAll({       
@@ -216,7 +216,7 @@ for (const [r,score] of result )
 
 }
 
-const createRecommendations = async(req,res)=>{
+const getRecommendations = async(req,res)=>{
     console.log(P_matrix)
     let pred= mmultiply(P_matrix,Q_matrix)
     res.status(200).json({rooms: pred[0]}) // del
