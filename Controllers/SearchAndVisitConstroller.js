@@ -6,11 +6,14 @@ const Visit = db.visits
 
 const addSearchHistory= async (req,res) => {   
 
-    if(req.body.countryId){ // countryId is mandatory element for the recommendations
-        Info={}
+    Info={}
+    if(req.body.numOfPeople)
+        Info["numOfPeople"] = req.body.numOfPeople
+
+    if(req.body.cityId){ // if cityId not Null then user must have searched country and state as well
         Info["countryId"] = req.body.countryId
-        if(req.body.numOfPeople)
-            Info["numOfPeople"] = req.body.numOfPeople
+        Info["stateId"] = req.body.stateId
+        Info["cityId"] = req.body.stateId
 
         const old_history = await SearchHistory.findOne({where:{userId:req.params.userId}})
         
@@ -34,6 +37,29 @@ const getSearchHistory = async (req,res) => {
     res.status(200).json({searchHistory: searchHistory})
 }
 
+const addVisit= async (req,res) => {
+    
+    const old_visit = await Visit.findOne(
+        {where:{
+            userId:req.body.userId,
+            roomId:req.body.roomId
+        }}
+    )
+
+    if(old_visit){
+        Visit.increment('count', { by: 1, where: { id: old_visit.id }});
+        res.status(200).json({message: "Visit updated!"})
+    }
+    else {
+        Visit.create({
+            userId:req.body.userId,
+            roomId:req.body.roomId,
+            count:1
+        })
+        res.status(200).json({message: "Visit created!"})
+    }
+}
+
 module.exports = {
-    addSearchHistory,getSearchHistory
+    addSearchHistory,getSearchHistory,addVisit
     }
