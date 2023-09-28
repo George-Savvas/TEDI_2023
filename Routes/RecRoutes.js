@@ -9,7 +9,7 @@ router.post('/addVisit', searchAndVisitController.addVisit)
 
 router.get('/getRecommendations/:userId',recController.getRecommendations) 
 
-router.get('/createRecommendations/:userId',recController.createRecommendations) 
+//router.get('/createRecommendations/:userId',recController.createRecommendations) 
 
 
 module.exports = router
