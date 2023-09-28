@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
         countryId:{type: DataTypes.STRING},
         stateId:{type: DataTypes.STRING},
         cityId: {type: DataTypes.STRING},
-        numOfPeople:{type: DataTypes.INTEGER}       
         // userId -> FOREIGN KEY
     })
 

@@ -7,9 +7,6 @@ const Visit = db.visits
 const addSearchHistory= async (req,res) => {   
 
     Info={}
-    if(req.body.numOfPeople)
-        Info["numOfPeople"] = req.body.numOfPeople
-
     if(req.body.cityId){ // if cityId not Null then user must have searched country and state as well
         Info["countryId"] = req.body.countryId
         Info["stateId"] = req.body.stateId
@@ -29,7 +26,7 @@ const addSearchHistory= async (req,res) => {
         
     }
     else 
-    res.status(200).json({message: "did not give countryId"})
+    res.status(200).json({message: "did not give ciyId"})
 }   
 
 const getSearchHistory = async (req,res) => {

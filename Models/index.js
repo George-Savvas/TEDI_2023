@@ -1,6 +1,7 @@
 const databaseConfig = require('../DatabaseConfig.js')
 const {Sequelize, DataTypes} = require('sequelize')
 const bcrypt = require("bcrypt")
+const Op = Sequelize.Op;
 
 const sequelize = new Sequelize(
     databaseConfig.db,
@@ -209,8 +210,42 @@ db.sequelize.sync({force: false}).then(() => {
     }
   )
 
-// let cur= db.users.findAll()//{where:{isAdmin:true}})
-// .then((users)=>console.log(users.length))
+// // CREATE PASSWORDS FOR AIRBNB DATASET TENANTS
+//   .then(
+//     (r)=>
+//     db.users.findAll(
+//       {where:
+//         {isTenant:true ,
+//         createdAt:{
+//           [Op.lt]: new Date('2023-08-13')
+//         } 
+//       }})
+//     ).then(
+//       (tenants)=>tenants.length
+//     ).then(
+//       (len)=>
+//       {if(len<19)
+//         {console.log("!!!!!   Fake Tenants need to be imported     !!!!!!!")
+//         process.exit(1)
+//       }else{
+//         console.log("Tenants are imported!")
+//       }
+//       }).then(
+//         (useless_res)=>
+//         bcrypt.hash("123456",10)).then(
+//           (pass)=>
+//           db.users.update(
+//             {password:pass},
+//             {where:
+//               {isTenant:true ,
+//               updatedAt:{
+//               [Op.lt]: new Date('2023-08-13') // update all non-updated fake tenants with the same password 
+//               } 
+//           }})
+//       )
+     
+    
+  
 
 
 //console.log("users",db.users.length)

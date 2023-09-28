@@ -38,6 +38,9 @@ router.get('/getAvailableDates/:roomId',roomController.getAvailableDates)
 
 router.get('/getRecommendations/:userId',recController.getRecommendations) // id->userid
 
+router.get('/createRecommendations/:userId',recController.createRecommendations) // id->userid
+
+
 router.delete('/deleteDates/:roomId',roomController.deleteDates)
 
 router.post('/addReview',reviewController.addReview)
