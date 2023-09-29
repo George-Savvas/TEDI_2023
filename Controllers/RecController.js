@@ -270,7 +270,7 @@ const getRecommendations = async(req,res)=>{
             ordered_rooms.push(r)
         
         console.log("result",result)
-        res.status(200).json([{rooms: ordered_rooms}])
+        res.status(200).json({rooms: ordered_rooms})
 
         //const room = await Room.findByPk(1)
         // //result =result.slice(0, 3) //not mandatory
@@ -278,7 +278,7 @@ const getRecommendations = async(req,res)=>{
       } 
       
       catch (err) {
-        res.status(200).json([{rooms: []}])
+        res.status(200).json({rooms: []})
         console.error('Error while parsing JSON data:', err)
       }
 
