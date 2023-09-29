@@ -219,7 +219,7 @@ var MF = function (R,P,Q,steps=3000,l=0.0002,min_error=1) {
     let total_error=0
     for(let s=0;s<steps; s++){
       if(s%50==0)
-      console.log(s)
+      console.log("MF : %d steps",s)
       for(let i =0;i<R.length ;i++){
   
           for(let j=0;j<R[0].length;j++){
@@ -279,7 +279,6 @@ const createRecommendations = async()=>{
     // user_ids=user_ids.slice(0, 20);
     // room_ids=room_ids.slice(0, 25);//fix this 
 
-    console.log("user_ids",user_ids)
     let N=user_ids.length
     let M=room_ids.length
      
@@ -289,11 +288,8 @@ const createRecommendations = async()=>{
     user_index = u => {return user_ids.indexOf(u);}
     room_index = r => {return room_ids.indexOf(r);}
 // SCORE BY BOOKINGS
-    let booked_users = bookings.map(b => b.userId) // save which ids have bookings    
-    console.log(booked_users)
+    let users_with_book = bookings.map(b => b.userId) // save which ids have bookings    
     for(var b of bookings){
-      console.log(b.userId)
-      console.log(b.roomId)
       let u=user_index(b.userId)  // u is the user_ids index
       let r=room_index(b.roomId)  // r is the room_ids index
  
@@ -302,17 +298,16 @@ const createRecommendations = async()=>{
 
 // SCORE BY REVIEWS , OVERWRITE BOOKINGS
     const reviews = await db.reviews.findAll()
+    let users_with_review = reviews.map(r => r.userId) 
 
     for(var rev of reviews){
         let u=user_index(rev.userId)
         let r=room_index(rev.roomId)
-        console.log(u, rev.userId)
-        console.log(r, rev.roomId)
         R[u][r]=4 // reviews will overwrite previous score 
     }
 
 for(var u_id of user_ids){
-    if(booked_users.includes(u_id))
+    if(users_with_book.includes(u_id) || users_with_review.includes(u_id))
         continue  
     else{
     let u=user_index(u_id)
@@ -328,7 +323,6 @@ for(var u_id of user_ids){
 
             for(var t_room of temp_rooms){
                 let r=room_index(t_room.id)         // save each roomId's index  
-                console.log(" U r from Search:",u,r)
                 R[u][r]=1.5 // give a score to the positions with u,r as indexes
  
             }
@@ -343,7 +337,6 @@ for(var u_id of user_ids){
     if(visits!=null){
     for(var v of visits){
         let r=room_index(v.roomId)
-        console.log("userId U r from Visit:",v.userId,u,r)
         if(v.count==1)
             R[u][r]=1.8
         else if(v.count==2)
@@ -354,7 +347,7 @@ for(var u_id of user_ids){
     
   }
 }
-
+    console.log("R",R)
     let P=[]
     let Q=[]
     for(let i=0;i<N; i++){
@@ -369,7 +362,6 @@ for(var u_id of user_ids){
     
     console.time()
     er=MF(R,P,Q,4000,0.0009,1)
-    console.log(er)
     console.timeEnd()
     P_global=P
     Q_global=Q
@@ -378,17 +370,7 @@ for(var u_id of user_ids){
     console.log("pred",pred) //del
 
   var jsonObj = {pred:pred, user_ids:user_ids , rooms:rooms}//,rooms:rooms}
-  //var jsonContent = JSON.stringify(jsonObj);
-  
-  //await fs.writeFile("output.json", jsonContent)
-  //, 'utf8', function (err) {
-  //   if (err) {
-  //       console.log("An error occured while writing JSON Object to File.");
-  //       return console.log(err);
-  //   }
- 
-  //   console.log("JSON file has been saved.");
-  // });
+
   return jsonObj
 }
 
@@ -451,7 +433,7 @@ db.sequelize.sync({force: false}).then(() => {
     createRecommendations()
   ).then((jsonObj)=>JSON.stringify(jsonObj))
   .then( 
-    (jsonContent)=>{
+    (jsonContent)=>{ // write the result to a file 
       fs.writeFile("MF.json", jsonContent, 'utf8', function (err) {
         if (err) {
           console.log("An error occured while writing JSON Object to File.");
@@ -465,89 +447,3 @@ db.sequelize.sync({force: false}).then(() => {
  module.exports = db
 
 
-// /****************************************************
-//  * Necessary imports to read/write/append to a file *
-//  ****************************************************/
-// const {readFileSync, writeFileSync, appendFileSync} = require('fs')
-
-// /****************************************************
-//  * Attempts to read the file in the designated path *
-//  *  with 'utf-8' encoding and return its contents   *
-//  ****************************************************/
-// const read = (path) => {
-
-//     /* We attempt to read the file in a synchronous manner
-//      *
-//      * Case the reading is successful: We return the contents
-//      * of the file
-//      */
-//     try {
-//         const fileData = readFileSync(path, 'utf-8')
-//         return fileData
-//     }
-
-//     /* Case the reading is not successful: We print the error */
-//     catch(error) {
-//         console.log(error)
-//     }
-
-//     /* We return the string below in case of unsucessful reading */
-//     return "Error: the file could not be read"
-// }
-
-// /***************************************************************
-//  * Attempts to write the content of the variable 'toBeWritten' *
-//  *             in the file in the designated path              *
-//  ***************************************************************/
-// const write = (path, toBeWritten) => {
-
-//     /* We attempt to write in the file in a synchronous manner
-//      *
-//      * Case the writing is successful: The contents of the target
-//      * file should change
-//      */
-//     try {
-//         writeFileSync(path, toBeWritten)
-//     }
-
-//     /* Case the writing is not successful: We print the error */
-//     catch(error) {
-//         console.log(error)
-//     }
-// }
-
-// /*****************************************************************
-//  * Attempts to append the content of the variable 'toBeAppended' *
-//  *              to the file in the designated path               *
-//  *****************************************************************/
-// const append = (path, toBeAppended) => {
-
-//     /* We attempt to append to the file in a synchronous manner
-//      *
-//      * Case the appending is successful: The contents of the target
-//      * file should change
-//      */
-//     try {
-//         appendFileSync(path, toBeAppended)
-//     }
-
-//     /* Case the appending is not successful: We print the error */
-//     catch(error) {
-//         console.log(error)
-//     }
-// }
-
-// /*******************************************************************
-//  * We export the 'read' function above with the custom name 'read' *
-//  *******************************************************************/
-// module.exports.read = read
-
-// /*********************************************************************
-//  * We export the 'write' function above with the custom name 'write' *
-//  *********************************************************************/
-// module.exports.write = write
-
-// /***********************************************************************
-//  * We export the 'append' function above with the custom name 'append' *
-//  ***********************************************************************/
-// module.exports.append = append
