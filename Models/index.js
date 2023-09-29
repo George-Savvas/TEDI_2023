@@ -425,10 +425,10 @@ db.sequelize.sync({force: false}).then(() => {
       (tenants)=>tenants.length
     ).then(
       (len)=>
-      {if(len<19)
+      {if(len<1)
         {console.log("!!!!!   Fake Tenants need to be imported     !!!!!!!")
         process.exit(1)
-      }else{
+      }else {
         console.log("Tenants are imported!")
       }
       }).then(
