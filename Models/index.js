@@ -318,10 +318,8 @@ for(var u_id of user_ids){
     let u=user_index(u_id)
 // SEARCHES_SCORES 
     const s = await db.searchHistories.findOne({where:{userId:u_id}})
-    // assume it's never null since we have imported Airbnb dataset
-    // for(var s of searches){
-    //     let u=user_index(s.userId)  // for each searchHistory save the index of the userId as u
-    //                                 // each userId , roomId has its own index in R array 
+    
+    if(s!=null){
         if(s.cityId!=null){      
             const temp_rooms= await db.rooms.findAll( // find the room's with search's cityId 
                 {where:{countryId: s.countryId,
@@ -337,10 +335,12 @@ for(var u_id of user_ids){
 
         }
 
-    //}
+    }
 
 // VISIT SCORES (OVERWRITE SEARCH SCORES)
     const visits = await db.visits.findAll({where: {userId:u_id}})
+    
+    if(visits!=null){
     for(var v of visits){
         let r=room_index(v.roomId)
         console.log("userId U r from Visit:",v.userId,u,r)
@@ -350,8 +350,9 @@ for(var u_id of user_ids){
             R[u][r]=2.2
         else    // count >=3
             R[u][r]=3
-    }
-    }
+    }}
+    
+  }
 }
 
     let P=[]
