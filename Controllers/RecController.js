@@ -245,13 +245,13 @@ const getRecommendations = async(req,res)=>{
         // output the parsed data
         pred=data.pred
         user_ids=data.user_ids
-        console.log("uid",user_ids)
+        //console.log("uid",user_ids)
         // room_ids=data.room_ids  // del
         // console.log("room_ids",room_ids) // del
         rooms=data.rooms
 
         let result_scores = pred[user_ids.indexOf(parseInt(req.params.userId,10))]
-        console.log(result_scores)
+        console.log(" User's row in MF matrix ",result_scores)
         //
         
         var result =[]
@@ -269,7 +269,7 @@ const getRecommendations = async(req,res)=>{
         for(const [r,score] of result)
             ordered_rooms.push(r)
         
-        console.log("result",result)
+        //console.log("result",result)
         res.status(200).json({rooms: ordered_rooms})
 
         //const room = await Room.findByPk(1)
