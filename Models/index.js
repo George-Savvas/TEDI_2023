@@ -184,10 +184,10 @@ async function createAdmin() {
         {
         username: "Admin",
         password: hash_password, // all passwords are hashed for safety
-        name: "John",
-        lastname: "Wick",
-        email: "housing_Admin@gmail.com",
-        telephone: 6256999675, //maybe fix this(for the additional +30 at the start)
+        name: "Theodosis",
+        lastname: "Theodosiou",
+        email: "admin@housingeasy.com",
+        telephone: 6981828384, //maybe fix this(for the additional +30 at the start)
         active: true,
         isTenant: false,  // depends
         isLandlord: false, // depends
@@ -285,22 +285,25 @@ const createRecommendations = async()=>{
     room_index = r => {return room_ids.indexOf(r);}
 // SCORE BY BOOKINGS
     let users_with_book = bookings.map(b => b.userId) // save which ids have bookings    
+    
+    if(bookings !==null){
     for(var b of bookings){
       let u=user_index(b.userId)  // u is the user_ids index
       let r=room_index(b.roomId)  // r is the room_ids index
  
         R[u][r]=3           // ADD SCORE , u and r give us the position in the R matrix
-    }
+    }}
 
 // SCORE BY REVIEWS , OVERWRITE BOOKINGS
     const reviews = await db.reviews.findAll()
     let users_with_review = reviews.map(r => r.userId) 
 
+    if(reviews){
     for(var rev of reviews){
-        let u=user_index(rev.userId)
+        let u=user_index(rev.userId)  
         let r=room_index(rev.roomId)
-        R[u][r]=4 // reviews will overwrite previous score 
-    }
+        R[u][r]=4 // reviews will overwrite previous booking score 
+    }}
 
 for(var u_id of user_ids){
     if(users_with_book.includes(u_id) || users_with_review.includes(u_id))
@@ -395,24 +398,34 @@ db.sequelize.sync({force: false}).then(() => {
     (r)=>
     db.users.findAll(
       {where:
-        {isTenant:true ,
-        createdAt:{
-          [Op.lt]: new Date('2023-08-13')
-        } 
+        {isTenant:true //,
+        //createdAt:{
+        //  [Op.lt]: new Date('2023-08-13')
+        //} 
       }})
     ).then(
       (tenants)=>tenants.length
     ).then(
-      (len)=>
-      {if(len<1)
-        {console.log("!!!!!   Fake Tenants need to be imported     !!!!!!!")
-        process.exit(1)
-      }else {
-        console.log("Tenants are imported!")
-      }
+      (len)=> {
+      
+        if(len<1)
+        {
+          console.log("!!!!!   Fake Tenants need to be imported     !!!!!!!")
+          return 0
+        }
+
+        else {
+          return 1
+        }
       }).then(
-        (useless_res)=>
-        bcrypt.hash("123456",10)).then(
+        (data_imported)=> 
+        {
+
+        if( data_imported===0)
+          console.log("Tenants are imported!")
+        else {
+         bcrypt.hash("123456",10)
+          .then(
           (pass)=>
           db.users.update(
             {password:pass},
@@ -438,8 +451,10 @@ db.sequelize.sync({force: false}).then(() => {
  
       console.log("MF.json file has been saved.");
   });
-}) 
+})
+} 
 
+})
 module.exports = db
 
 
