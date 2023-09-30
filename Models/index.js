@@ -254,6 +254,7 @@ var MF = function (R,P,Q,steps=3000,l=0.0002,min_error=1) {
   
     
     }
+    console.log("total error",total_error)
     return total_error
   }
 
@@ -263,16 +264,11 @@ var MF = function (R,P,Q,steps=3000,l=0.0002,min_error=1) {
 const createRecommendations = async()=>{
     let K =  3
     
-    const rooms = await db.rooms.findAll({       
-        order: 
-        [['id', 'ASC']]
-    })
+    const rooms = await db.rooms.findAll()
     room_ids = rooms.map((room) => room.id)
     
     const users = await db.users.findAll({
-        where:{isTenant:true},
-        order: 
-        [['id', 'ASC']]
+        where:{isTenant:true}
     })
     user_ids = users.map((user) => user.id)
 
@@ -342,7 +338,7 @@ for(var u_id of user_ids){
         else if(v.count==2)
             R[u][r]=2.2
         else    // count >=3
-            R[u][r]=3
+            R[u][r]=2.6
     }}
     
   }
@@ -430,20 +426,20 @@ db.sequelize.sync({force: false}).then(() => {
 // ..then
 // RUN MATRIX FACTORIZATION
   .then((res)=>
-    createRecommendations()
-  ).then((jsonObj)=>JSON.stringify(jsonObj))
+    createRecommendations() //run MF
+  ).then((RecObj)=>JSON.stringify(RecObj))
   .then( 
-    (jsonContent)=>{ // write the result to a file 
-      fs.writeFile("MF.json", jsonContent, 'utf8', function (err) {
+    (Rec_jsonContent)=>{ // write the result to a file 
+      fs.writeFile("MF.json", Rec_jsonContent, 'utf8', function (err) {
         if (err) {
           console.log("An error occured while writing JSON Object to File.");
           return console.log(err);
       }
  
-      console.log("JSON file has been saved.");
+      console.log("MF.json file has been saved.");
   });
-} ).then(console.log("MF finished"))
+}) 
 
- module.exports = db
+module.exports = db
 
 
